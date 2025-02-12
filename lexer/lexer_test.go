@@ -33,6 +33,7 @@ func TestNewLexer(t *testing.T) {
 }
 
 func TestScanTokens(t *testing.T) {
+	var zeroTokens []Token
 	data := []struct {
 		name           string
 		sourceCode     string
@@ -48,7 +49,7 @@ func TestScanTokens(t *testing.T) {
 			"",
 		},
 		{
-			"single state",
+			"state",
 			"qSingle",
 			[]Token{
 				{Type: StateToken, Value: "qSingle", Line: 1},
@@ -67,6 +68,86 @@ func TestScanTokens(t *testing.T) {
 				{Type: StateToken, Value: "qNext", Line: 4},
 				{Type: StateToken, Value: "qLast", Line: 5},
 				{Type: EOFToken, Value: "", Line: 7},
+			},
+			"",
+		},
+		{
+			"blank symbol",
+			"B",
+			[]Token{
+				{Type: BlankSymbolToken, Value: "B", Line: 1},
+				{Type: EOFToken, Value: "", Line: 1},
+			},
+			"",
+		},
+		{
+			"move tokens",
+			"L R",
+			[]Token{
+				{Type: MoveLeftToken, Value: "L", Line: 1},
+				{Type: MoveRightToken, Value: "R", Line: 1},
+				{Type: EOFToken, Value: "", Line: 1},
+			},
+			"",
+		},
+		{
+			"parens",
+			"( )",
+			[]Token{
+				{Type: LeftParenToken, Value: "(", Line: 1},
+				{Type: RightParenToken, Value: ")", Line: 1},
+				{Type: EOFToken, Value: "", Line: 1},
+			},
+			"",
+		},
+		{
+			"comma, semicolon & arrow",
+			", ; >",
+			[]Token{
+				{Type: CommaToken, Value: ",", Line: 1},
+				{Type: SemicolonToken, Value: ";", Line: 1},
+				{Type: ArrowToken, Value: ">", Line: 1},
+				{Type: EOFToken, Value: "", Line: 1},
+			},
+			"",
+		},
+		{
+			"symbol",
+			"someSymbol",
+			[]Token{
+				{Type: SymbolToken, Value: "someSymbol", Line: 1},
+				{Type: EOFToken, Value: "", Line: 1},
+			},
+			"",
+		},
+		{
+			"invalid token",
+			"1234",
+			zeroTokens,
+			"unknown symbol (1) at line (1)",
+		},
+		{
+			"all",
+			"qState\n;;,>>symbol1 symbol2\tBLRR,,((\n)",
+			[]Token{
+				{Type: StateToken, Value: "qState", Line: 1},
+				{Type: SemicolonToken, Value: ";", Line: 2},
+				{Type: SemicolonToken, Value: ";", Line: 2},
+				{Type: CommaToken, Value: ",", Line: 2},
+				{Type: ArrowToken, Value: ">", Line: 2},
+				{Type: ArrowToken, Value: ">", Line: 2},
+				{Type: SymbolToken, Value: "symbol1", Line: 2},
+				{Type: SymbolToken, Value: "symbol2", Line: 2},
+				{Type: BlankSymbolToken, Value: "B", Line: 2},
+				{Type: MoveLeftToken, Value: "L", Line: 2},
+				{Type: MoveRightToken, Value: "R", Line: 2},
+				{Type: MoveRightToken, Value: "R", Line: 2},
+				{Type: CommaToken, Value: ",", Line: 2},
+				{Type: CommaToken, Value: ",", Line: 2},
+				{Type: LeftParenToken, Value: "(", Line: 2},
+				{Type: LeftParenToken, Value: "(", Line: 2},
+				{Type: RightParenToken, Value: ")", Line: 3},
+				{Type: EOFToken, Value: "", Line: 3},
 			},
 			"",
 		},

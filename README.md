@@ -10,12 +10,12 @@ qf1 qf2 ... qfk; [accepting states]
 a1 a2 ... an; [input symbols]
 x1 x2 ... xn; [tape symbols]
 
-(q, s) -> (new_q, new_s, move)
-(q, s) -> (new_q, new_s, move)
-(q, s) -> (new_q, new_s, move)
+(q, s) > (new_q, new_s, move)
+(q, s) > (new_q, new_s, move)
+(q, s) > (new_q, new_s, move)
 ...;
 
-a1a1a3a8...; [initial tape]
+a1 a1 a3 a8 ...; [initial tape]
 
 ```
 

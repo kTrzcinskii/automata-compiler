@@ -55,13 +55,34 @@ func (l Lexer) isAtEnd() bool {
 }
 
 func (l *Lexer) scanToken() (Token, error) {
-	c := string(l.advance())
+	r := l.advance()
+	c := string(r)
 
 	switch c {
 	case "q":
 		state := l.readAlphanumeric()
 		return Token{Type: StateToken, Value: state, Line: l.line}, nil
+	case "(":
+		return Token{Type: LeftParenToken, Value: c, Line: l.line}, nil
+	case ")":
+		return Token{Type: RightParenToken, Value: c, Line: l.line}, nil
+	case ",":
+		return Token{Type: CommaToken, Value: c, Line: l.line}, nil
+	case ";":
+		return Token{Type: SemicolonToken, Value: c, Line: l.line}, nil
+	case ">":
+		return Token{Type: ArrowToken, Value: c, Line: l.line}, nil
+	case "L":
+		return Token{Type: MoveLeftToken, Value: c, Line: l.line}, nil
+	case "R":
+		return Token{Type: MoveRightToken, Value: c, Line: l.line}, nil
+	case "B":
+		return Token{Type: BlankSymbolToken, Value: c, Line: l.line}, nil
 	default:
+		if unicode.IsLetter(r) {
+			symbol := l.readAlphanumeric()
+			return Token{Type: SymbolToken, Value: symbol, Line: l.line}, nil
+		}
 		var zero Token
 		return zero, fmt.Errorf("unknown symbol (%s) at line (%d)", c, l.line)
 	}
