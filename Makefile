@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := build
 
-.PHONY:fmt vet staticcheck build clean
+.PHONY:fmt vet staticcheck build clean test
 
 fmt:
 	go fmt ./...
@@ -16,3 +16,6 @@ build: staticcheck
 
 clean:
 	rm -rf build/*
+
+test:
+	go test -v ./...
