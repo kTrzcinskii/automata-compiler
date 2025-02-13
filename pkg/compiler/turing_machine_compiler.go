@@ -35,7 +35,15 @@ func (tm *TuringMachineCompiler) Compile() (automata.Automata, error) {
 	if err != nil {
 		return zero, err
 	}
-	return automata.TuringMachine{States: states, InitialState: initialState, Symbols: symbols, Transitions: tf}, nil
+	initialTape, err := tm.processTape(symbols)
+	if err != nil {
+		return zero, err
+	}
+	err = tm.checkForCorrectEndingSequnce()
+	if err != nil {
+		return zero, err
+	}
+	return automata.TuringMachine{States: states, InitialState: initialState, Symbols: symbols, Transitions: tf, Tape: initialTape}, nil
 }
 
 func NewTuringMachineCompiler(tokens []lexer.Token) *TuringMachineCompiler {
@@ -254,4 +262,33 @@ func (tm *TuringMachineCompiler) processTransitionRightSide(states map[string]au
 		moveValue = automata.TapeMoveRight
 	}
 	return automata.TMTransitionValue{StateName: state.Value, SymbolName: symbol.Value, Move: moveValue}, nil
+}
+
+func (tm *TuringMachineCompiler) processTape(symbols map[string]automata.Symbol) ([]string, error) {
+	tape := make([]string, 0)
+	for !tm.isAtEnd() {
+		t := tm.advance()
+		switch t.Type {
+		case lexer.SemicolonToken:
+			return tape, nil
+		case lexer.SymbolToken:
+			if _, ok := symbols[t.Value]; !ok {
+				return nil, fmt.Errorf("invalid symbol %s in initial tape, each symbol must be defined in symbols section", t.Value)
+			}
+			tape = append(tape, t.Value)
+		default:
+			return nil, fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.SemicolonToken.String(), lexer.SymbolToken.String(), t.Type.String())
+		}
+	}
+	return nil, errors.New("missing ';' at the end of tape section")
+}
+
+func (tm *TuringMachineCompiler) checkForCorrectEndingSequnce() error {
+	if _, err := tm.consumeTokenWithType(lexer.EOFToken, "missing EOF token at the end of source"); err != nil {
+		return err
+	}
+	if !tm.isAtEnd() {
+		return errors.New("unexpected token after EOF token")
+	}
+	return nil
 }

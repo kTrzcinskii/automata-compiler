@@ -102,6 +102,13 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.MoveRightToken, Value: "R", Line: 6},
 				{Type: lexer.RightParenToken, Value: ")", Line: 6},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 6},
+				// Initial tape
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 7},
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 7},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 7},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 7},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
+				{Type: lexer.EOFToken, Value: "", Line: 7},
 			},
 			automata.TuringMachine{
 				States: map[string]automata.State{
@@ -119,6 +126,12 @@ func TestCompile(t *testing.T) {
 				Transitions: map[automata.TMTransitionKey]automata.TMTransitionValue{
 					{StateName: "qState", SymbolName: "symbol1"}:  {StateName: "qState2", SymbolName: "symbol2", Move: automata.TapeMoveLeft},
 					{StateName: "qState3", SymbolName: "symbol3"}: {StateName: "qState", SymbolName: "symbol3", Move: automata.TapeMoveRight},
+				},
+				Tape: []string{
+					"symbol2",
+					"symbol1",
+					"symbol2",
+					"symbol3",
 				},
 			},
 			"",
@@ -423,6 +436,8 @@ func TestCompile(t *testing.T) {
 			"unfinished transition",
 		},
 		// TODO: add more test for error paths in `processSingleTransition`
+		// TODO: add tests for errors paths in `processTape`
+		// TODO: add tests for errors related to invalid EOF/unexpected token at the end
 	}
 	for _, d := range data {
 		t.Run(d.name, func(t *testing.T) {
