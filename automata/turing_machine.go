@@ -11,10 +11,12 @@ type TMTransitionValue struct {
 	Move       TapeMoveType
 }
 
+type TransitionFunction map[TMTransitionKey]TMTransitionValue
+
 type TuringMachine struct {
 	States       map[string]State
 	Symbols      map[string]Symbol
 	InitialState string
 	Tape         []Symbol
-	Transitions  map[TMTransitionKey]TMTransitionValue
+	Transitions  TransitionFunction
 }
