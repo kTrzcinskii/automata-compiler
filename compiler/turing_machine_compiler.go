@@ -26,7 +26,11 @@ func (tm *TuringMachineCompiler) Compile() (automata.Automata, error) {
 	if err != nil {
 		return zero, err
 	}
-	return automata.TuringMachine{States: states, InitialState: initialState}, nil
+	symbols, err := tm.processSymbols()
+	if err != nil {
+		return zero, err
+	}
+	return automata.TuringMachine{States: states, InitialState: initialState, Symbols: symbols}, nil
 }
 
 func NewTuringMachineCompiler(tokens []lexer.Token) *TuringMachineCompiler {
@@ -105,4 +109,25 @@ func (tm *TuringMachineCompiler) processAcceptingStates(states map[string]automa
 		}
 	}
 	return errors.New("missing ';' at the end of accepting states section")
+}
+
+func (tm *TuringMachineCompiler) processSymbols() (map[string]automata.Symbol, error) {
+	symbols := make(map[string]automata.Symbol)
+	for !tm.isAtEnd() {
+		t := tm.advance()
+		switch t.Type {
+		case lexer.SemicolonToken:
+			return symbols, nil
+		case lexer.SymbolToken:
+			name := t.Value
+			if _, ok := symbols[name]; ok {
+				return nil, fmt.Errorf("symbol %s already declared, each symbol must have unique name", name)
+			}
+			symbols[name] = automata.Symbol{Name: t.Value}
+		default:
+			return nil, fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.SymbolToken.String(), lexer.SemicolonToken.String(), t.Type.String())
+
+		}
+	}
+	return nil, errors.New("missing ';' at the end of symbols section")
 }

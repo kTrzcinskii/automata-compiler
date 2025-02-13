@@ -10,8 +10,8 @@ type State struct {
 }
 
 type Symbol struct {
-	Name         string
-	FromAlphabet bool
+	Name string
+	// TODO: I think we need more fields here (may be in different kinds of automata?)
 }
 
 type TapeMoveType int
