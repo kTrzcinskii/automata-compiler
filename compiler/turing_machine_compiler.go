@@ -12,6 +12,7 @@ type TuringMachineCompiler struct {
 	it     int
 }
 
+// TODO: add line info to each error message
 func (tm *TuringMachineCompiler) Compile() (automata.Automata, error) {
 	var zero automata.TuringMachine
 	states, err := tm.processStates()
@@ -30,7 +31,11 @@ func (tm *TuringMachineCompiler) Compile() (automata.Automata, error) {
 	if err != nil {
 		return zero, err
 	}
-	return automata.TuringMachine{States: states, InitialState: initialState, Symbols: symbols}, nil
+	tf, err := tm.processTransitions(states, symbols)
+	if err != nil {
+		return zero, err
+	}
+	return automata.TuringMachine{States: states, InitialState: initialState, Symbols: symbols, Transitions: tf}, nil
 }
 
 func NewTuringMachineCompiler(tokens []lexer.Token) *TuringMachineCompiler {
@@ -49,6 +54,25 @@ func (tm *TuringMachineCompiler) advance() lexer.Token {
 	t := tm.tokens[tm.it]
 	tm.it++
 	return t
+}
+
+func checkTokenType(t lexer.Token, expected lexer.TokenType) error {
+	if t.Type != expected {
+		return fmt.Errorf("invalid token type, expected: %s, got: %s", expected.String(), t.Type.String())
+	}
+	return nil
+}
+
+func (tm *TuringMachineCompiler) consumeTokenWithType(expected lexer.TokenType, atEndErrMsg string) (lexer.Token, error) {
+	var zero lexer.Token
+	if tm.isAtEnd() {
+		return zero, errors.New(atEndErrMsg)
+	}
+	token := tm.advance()
+	if err := checkTokenType(token, expected); err != nil {
+		return zero, err
+	}
+	return token, nil
 }
 
 func (tm *TuringMachineCompiler) processStates() (map[string]automata.State, error) {
@@ -72,23 +96,16 @@ func (tm *TuringMachineCompiler) processStates() (map[string]automata.State, err
 }
 
 func (tm *TuringMachineCompiler) processInitialState(states map[string]automata.State) (string, error) {
-	if tm.isAtEnd() {
-		return "", fmt.Errorf("missing initial state section")
+	initialState, err := tm.consumeTokenWithType(lexer.StateToken, "missing initial state section")
+	if err != nil {
+		return "", err
 	}
-
-	initialState := tm.advance()
-	if initialState.Type != lexer.StateToken {
-		return "", fmt.Errorf("invalid initial state token, expected: %s, got: %s", lexer.StateToken.String(), initialState.Type.String())
-	}
-
 	if _, ok := states[initialState.Value]; !ok {
 		return "", fmt.Errorf("invalid initial state, state %s was not declared in states list", initialState.Value)
 	}
-
 	if tm.isAtEnd() || tm.advance().Type != lexer.SemicolonToken {
 		return "", fmt.Errorf("missing ';' after initial state")
 	}
-
 	return initialState.Value, nil
 }
 
@@ -126,8 +143,115 @@ func (tm *TuringMachineCompiler) processSymbols() (map[string]automata.Symbol, e
 			symbols[name] = automata.Symbol{Name: t.Value}
 		default:
 			return nil, fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.SymbolToken.String(), lexer.SemicolonToken.String(), t.Type.String())
-
 		}
 	}
 	return nil, errors.New("missing ';' at the end of symbols section")
+}
+
+func (tm *TuringMachineCompiler) processTransitions(states map[string]automata.State, symbols map[string]automata.Symbol) (automata.TransitionFunction, error) {
+	tf := make(automata.TransitionFunction)
+	for !tm.isAtEnd() {
+		t := tm.advance()
+		switch t.Type {
+		case lexer.SemicolonToken:
+			return tf, nil
+		case lexer.LeftParenToken:
+			err := tm.processSingleTransition(states, symbols, tf)
+			if err != nil {
+				return nil, err
+			}
+		default:
+			return nil, fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.LeftParenToken.String(), lexer.SemicolonToken.String(), t.Type.String())
+		}
+	}
+	return nil, errors.New("missing ';' at the end of transitions section")
+}
+
+func (tm *TuringMachineCompiler) processSingleTransition(states map[string]automata.State, symbols map[string]automata.Symbol, tf automata.TransitionFunction) error {
+	// Each transition is as follows:
+	// (state, symbol) > (state, symbol, movement)
+	// At this point '(' has already been processed
+	const atEndErrMsg = "unfinished transition"
+	leftSide, err := tm.processTransitionLeftSide(states, symbols, atEndErrMsg)
+	if err != nil {
+		return err
+	}
+	if _, err := tm.consumeTokenWithType(lexer.ArrowToken, atEndErrMsg); err != nil {
+		return err
+	}
+	rightSide, err := tm.processTransitionRightSide(states, symbols, atEndErrMsg)
+	if err != nil {
+		return err
+	}
+	tf[leftSide] = rightSide
+	return nil
+}
+
+func (tm *TuringMachineCompiler) processTransitionLeftSide(states map[string]automata.State, symbols map[string]automata.Symbol, atEndErrMsg string) (automata.TMTransitionKey, error) {
+	var zero automata.TMTransitionKey
+	state, err := tm.consumeTokenWithType(lexer.StateToken, atEndErrMsg)
+	if err != nil {
+		return zero, err
+	}
+	if _, ok := states[state.Value]; !ok {
+		return zero, fmt.Errorf("undefined state %s used in transition function", state.Value)
+	}
+	if _, err := tm.consumeTokenWithType(lexer.CommaToken, atEndErrMsg); err != nil {
+		return zero, err
+	}
+	symbol, err := tm.consumeTokenWithType(lexer.SymbolToken, atEndErrMsg)
+	if err != nil {
+		return zero, err
+	}
+	if _, ok := symbols[symbol.Value]; !ok {
+		return zero, fmt.Errorf("undefined symbol %s used in transition function", symbol.Value)
+	}
+	if _, err := tm.consumeTokenWithType(lexer.RightParenToken, atEndErrMsg); err != nil {
+		return zero, err
+	}
+	return automata.TMTransitionKey{StateName: state.Value, SymbolName: symbol.Value}, nil
+}
+
+func (tm *TuringMachineCompiler) processTransitionRightSide(states map[string]automata.State, symbols map[string]automata.Symbol, atEndErrMsg string) (automata.TMTransitionValue, error) {
+	var zero automata.TMTransitionValue
+	if _, err := tm.consumeTokenWithType(lexer.LeftParenToken, atEndErrMsg); err != nil {
+		return zero, err
+	}
+	state, err := tm.consumeTokenWithType(lexer.StateToken, atEndErrMsg)
+	if err != nil {
+		return zero, err
+	}
+	if _, ok := states[state.Value]; !ok {
+		return zero, fmt.Errorf("undefined state %s used in transition function", state.Value)
+	}
+	if _, err := tm.consumeTokenWithType(lexer.CommaToken, atEndErrMsg); err != nil {
+		return zero, err
+	}
+	symbol, err := tm.consumeTokenWithType(lexer.SymbolToken, atEndErrMsg)
+	if err != nil {
+		return zero, err
+	}
+	if _, ok := symbols[symbol.Value]; !ok {
+		return zero, fmt.Errorf("undefined symbol %s used in transition function", symbol.Value)
+	}
+	if _, err := tm.consumeTokenWithType(lexer.CommaToken, atEndErrMsg); err != nil {
+		return zero, err
+	}
+	move, err := tm.consumeTokenWithType(lexer.MoveLeftToken, atEndErrMsg)
+	if err != nil {
+		// We move back to try to consume it as right move
+		tm.it--
+		move, err = tm.consumeTokenWithType(lexer.MoveRightToken, atEndErrMsg)
+		if err != nil {
+			return zero, err
+		}
+	}
+	if _, err := tm.consumeTokenWithType(lexer.RightParenToken, atEndErrMsg); err != nil {
+		return zero, err
+	}
+	moveValue := automata.TapeMoveLeft
+	if move.Type == lexer.MoveRightToken {
+		moveValue = automata.TapeMoveRight
+	}
+	return automata.TMTransitionValue{StateName: state.Value, SymbolName: symbol.Value, Move: moveValue}, nil
 }

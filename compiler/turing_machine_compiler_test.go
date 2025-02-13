@@ -54,20 +54,54 @@ func TestCompile(t *testing.T) {
 		{
 			"simple program",
 			[]lexer.Token{
+				// States
 				{Type: lexer.StateToken, Value: "qState", Line: 1},
 				{Type: lexer.StateToken, Value: "qState2", Line: 1},
 				{Type: lexer.StateToken, Value: "qState3", Line: 1},
 				{Type: lexer.StateToken, Value: "qState4", Line: 1},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
 				{Type: lexer.StateToken, Value: "qState", Line: 3},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
 				{Type: lexer.StateToken, Value: "qState2", Line: 4},
 				{Type: lexer.StateToken, Value: "qState3", Line: 4},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
 				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
 				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				// First
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				{Type: lexer.ArrowToken, Value: ">", Line: 6},
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState2", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.MoveLeftToken, Value: "L", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				// Second
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState3", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				{Type: lexer.ArrowToken, Value: ">", Line: 6},
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.MoveRightToken, Value: "R", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 6},
 			},
 			automata.TuringMachine{
 				States: map[string]automata.State{
@@ -81,6 +115,10 @@ func TestCompile(t *testing.T) {
 					"symbol1": {Name: "symbol1"},
 					"symbol2": {Name: "symbol2"},
 					"symbol3": {Name: "symbol3"},
+				},
+				Transitions: map[automata.TMTransitionKey]automata.TMTransitionValue{
+					{StateName: "qState", SymbolName: "symbol1"}:  {StateName: "qState2", SymbolName: "symbol2", Move: automata.TapeMoveLeft},
+					{StateName: "qState3", SymbolName: "symbol3"}: {StateName: "qState", SymbolName: "symbol3", Move: automata.TapeMoveRight},
 				},
 			},
 			"",
@@ -137,7 +175,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol", Line: 3},
 			},
 			zero,
-			"invalid initial state token, expected: StateToken, got: SymbolToken",
+			"invalid token type, expected: StateToken, got: SymbolToken",
 		},
 		{
 			"unknown state in initial state section",
@@ -273,6 +311,118 @@ func TestCompile(t *testing.T) {
 			zero,
 			"symbol symbol1 already declared, each symbol must have unique name",
 		},
+		{
+			"missing semicolon after transitions section",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				// First
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				{Type: lexer.ArrowToken, Value: ">", Line: 6},
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState2", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.MoveLeftToken, Value: "L", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				// Second
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState3", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				{Type: lexer.ArrowToken, Value: ">", Line: 6},
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.MoveRightToken, Value: "R", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+			},
+			zero,
+			"missing ';' at the end of transitions section",
+		},
+		{
+			"invalid token at the beginning of the transition",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+			},
+			zero,
+			"invalid token type, expected: LeftParenToken or SemicolonToken, got: SymbolToken",
+		},
+		{
+			"unfinished transition",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 6},
+			},
+			zero,
+			"unfinished transition",
+		},
+		// TODO: add more test for error paths in `processSingleTransition`
 	}
 	for _, d := range data {
 		t.Run(d.name, func(t *testing.T) {
