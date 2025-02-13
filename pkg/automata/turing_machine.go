@@ -17,6 +17,6 @@ type TuringMachine struct {
 	States       map[string]State
 	Symbols      map[string]Symbol
 	InitialState string
-	Tape         []Symbol
+	Tape         []string
 	Transitions  TransitionFunction
 }
