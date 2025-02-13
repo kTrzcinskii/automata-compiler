@@ -1,8 +1,8 @@
 package compiler
 
 import (
-	"automata-compiler/automata"
-	"automata-compiler/lexer"
+	"automata-compiler/pkg/automata"
+	"automata-compiler/pkg/lexer"
 	"slices"
 	"testing"
 

@@ -1,6 +1,8 @@
 package compiler
 
-import "automata-compiler/automata"
+import (
+	"automata-compiler/pkg/automata"
+)
 
 type Compiler interface {
 	Compile() (automata.Automata, error)
