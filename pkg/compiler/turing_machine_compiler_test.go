@@ -145,7 +145,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState4", Line: 1},
 			},
 			zero,
-			"missing ';' at the end of states section",
+			"[Line 1] missing ';' at the end of states section",
 		},
 		{
 			"duplicated state",
@@ -154,7 +154,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState", Line: 1},
 			},
 			zero,
-			"state qState already declared, each state must have unique name",
+			"[Line 1] state qState already declared, each state must have unique name",
 		},
 		{
 			"unexpected token in state section",
@@ -163,7 +163,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "Symbol", Line: 1},
 			},
 			zero,
-			"invalid token type, expected: StateToken or SemicolonToken, got: SymbolToken",
+			"[Line 1] invalid token type, expected: StateToken or SemicolonToken, got: SymbolToken",
 		},
 		{
 			"missing initial state",
@@ -175,7 +175,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
 			},
 			zero,
-			"missing initial state section",
+			"[Line 3] missing initial state section",
 		},
 		{
 			"invalid token in initial state section",
@@ -188,7 +188,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol", Line: 3},
 			},
 			zero,
-			"invalid token type, expected: StateToken, got: SymbolToken",
+			"[Line 3] invalid token type, expected: StateToken, got: SymbolToken",
 		},
 		{
 			"unknown state in initial state section",
@@ -201,7 +201,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState5", Line: 3},
 			},
 			zero,
-			"invalid initial state, state qState5 was not declared in states list",
+			"[Line 3] invalid initial state, state qState5 was not declared in states list",
 		},
 		{
 			"missing semicolon after initial state section",
@@ -214,7 +214,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState", Line: 3},
 			},
 			zero,
-			"missing ';' after initial state",
+			"[Line 3] missing ';' after initial state",
 		},
 		{
 			"missing semicolon after accepting states section",
@@ -229,7 +229,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState3", Line: 4},
 			},
 			zero,
-			"missing ';' at the end of accepting states section",
+			"[Line 4] missing ';' at the end of accepting states section",
 		},
 		{
 			"invalid token in accepting states section",
@@ -245,7 +245,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
 			},
 			zero,
-			"invalid token type, expected: StateToken or SemicolonToken, got: ArrowToken",
+			"[Line 3] invalid token type, expected: StateToken or SemicolonToken, got: ArrowToken",
 		},
 		{
 			"undefined state in accepting states section",
@@ -258,10 +258,10 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState", Line: 3},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
 				{Type: lexer.StateToken, Value: "qState5", Line: 4},
-				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
 			},
 			zero,
-			"state qState5 not found, any accepting state must be defined in state list",
+			"[Line 4] state qState5 not found, any accepting state must be defined in state list",
 		},
 		{
 			"missing semicolon after symbols section",
@@ -281,7 +281,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
 			},
 			zero,
-			"missing ';' at the end of symbols section",
+			"[Line 5] missing ';' at the end of symbols section",
 		},
 		{
 			"invalid token in symbols section",
@@ -302,7 +302,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
 			},
 			zero,
-			"invalid token type, expected: SymbolToken or SemicolonToken, got: LeftParenToken",
+			"[Line 5] invalid token type, expected: SymbolToken or SemicolonToken, got: LeftParenToken",
 		},
 		{
 			"duplicated symbol in symbols section",
@@ -322,7 +322,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
 			},
 			zero,
-			"symbol symbol1 already declared, each symbol must have unique name",
+			"[Line 5] symbol symbol1 already declared, each symbol must have unique name",
 		},
 		{
 			"missing semicolon after transitions section",
@@ -376,7 +376,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.RightParenToken, Value: ")", Line: 6},
 			},
 			zero,
-			"missing ';' at the end of transitions section",
+			"[Line 6] missing ';' at the end of transitions section",
 		},
 		{
 			"invalid token at the beginning of the transition",
@@ -403,7 +403,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
 			},
 			zero,
-			"invalid token type, expected: LeftParenToken or SemicolonToken, got: SymbolToken",
+			"[Line 5] invalid token type, expected: LeftParenToken or SemicolonToken, got: SymbolToken",
 		},
 		{
 			"unfinished transition",
@@ -433,7 +433,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol1", Line: 6},
 			},
 			zero,
-			"unfinished transition",
+			"[Line 6] unfinished transition",
 		},
 		// TODO: add more test for error paths in `processSingleTransition`
 		{
@@ -466,7 +466,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 7},
 			},
 			zero,
-			"missing ';' at the end of tape section",
+			"[Line 7] missing ';' at the end of tape section",
 		},
 		{
 			"undefined symbol in initial tape",
@@ -495,7 +495,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol100", Line: 7},
 			},
 			zero,
-			"invalid symbol symbol100 in initial tape, each symbol must be defined in symbols section",
+			"[Line 7] invalid symbol symbol100 in initial tape, each symbol must be defined in symbols section",
 		},
 		{
 			"invalid token type in tape section",
@@ -524,7 +524,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.ArrowToken, Value: ">", Line: 7},
 			},
 			zero,
-			"invalid token type, expected: SemicolonToken or SymbolToken, got: ArrowToken",
+			"[Line 7] invalid token type, expected: SemicolonToken or SymbolToken, got: ArrowToken",
 		},
 		{
 			"missing EOF at the end of token list",

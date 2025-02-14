@@ -12,35 +12,36 @@ type TuringMachineCompiler struct {
 	it     int
 }
 
-// TODO: add line info to each error message
 func (tm *TuringMachineCompiler) Compile() (automata.Automata, error) {
 	var zero automata.TuringMachine
 	states, err := tm.processStates()
 	if err != nil {
-		return zero, err
+		return zero, tm.addLinePrefixForErrPrevToken(err)
 	}
 	initialState, err := tm.processInitialState(states)
 	if err != nil {
-		return zero, err
+		return zero, tm.addLinePrefixForErrPrevToken(err)
 	}
 	err = tm.processAcceptingStates(states)
 	if err != nil {
-		return zero, err
+		return zero, tm.addLinePrefixForErrPrevToken(err)
 	}
 	symbols, err := tm.processSymbols()
 	if err != nil {
-		return zero, err
+		return zero, tm.addLinePrefixForErrPrevToken(err)
 	}
 	tf, err := tm.processTransitions(states, symbols)
 	if err != nil {
-		return zero, err
+		return zero, tm.addLinePrefixForErrPrevToken(err)
 	}
 	initialTape, err := tm.processTape(symbols)
 	if err != nil {
-		return zero, err
+		return zero, tm.addLinePrefixForErrPrevToken(err)
 	}
 	err = tm.checkForCorrectEndingSequnce()
 	if err != nil {
+		// It's more lexer error than user provider source,
+		// so we don't include line here
 		return zero, err
 	}
 	return automata.TuringMachine{States: states, InitialState: initialState, Symbols: symbols, Transitions: tf, Tape: initialTape}, nil
@@ -81,6 +82,21 @@ func (tm *TuringMachineCompiler) consumeTokenWithType(expected lexer.TokenType, 
 		return zero, err
 	}
 	return token, nil
+}
+
+func (tm TuringMachineCompiler) prevTokenLine() int {
+	if tm.it == 0 {
+		return 0
+	}
+	return tm.tokens[tm.it-1].Line
+}
+
+func addLinePrefixForErr(err error, line int) error {
+	return fmt.Errorf("[Line %d] %s", line, err.Error())
+}
+
+func (tm TuringMachineCompiler) addLinePrefixForErrPrevToken(err error) error {
+	return addLinePrefixForErr(err, tm.prevTokenLine())
 }
 
 func (tm *TuringMachineCompiler) processStates() (map[string]automata.State, error) {
