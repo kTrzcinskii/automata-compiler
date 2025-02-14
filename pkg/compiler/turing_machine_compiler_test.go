@@ -458,7 +458,6 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
 				// Transitions
-				// First
 				{Type: lexer.SemicolonToken, Value: ";", Line: 6},
 				// Initial tape
 				{Type: lexer.SymbolToken, Value: "symbol2", Line: 7},
@@ -491,7 +490,6 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
 				// Transitions
-				// First
 				{Type: lexer.SemicolonToken, Value: ";", Line: 6},
 				// Initial tape
 				{Type: lexer.SymbolToken, Value: "symbol100", Line: 7},
@@ -521,7 +519,6 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
 				// Transitions
-				// First
 				{Type: lexer.SemicolonToken, Value: ";", Line: 6},
 				// Initial tape
 				{Type: lexer.ArrowToken, Value: ">", Line: 7},
@@ -529,7 +526,67 @@ func TestCompile(t *testing.T) {
 			zero,
 			"invalid token type, expected: SemicolonToken or SymbolToken, got: ArrowToken",
 		},
-		// TODO: add tests for errors related to invalid EOF/unexpected token at the end
+		{
+			"missing EOF at the end of token list",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.SemicolonToken, Value: ";", Line: 6},
+				// Initial tape
+				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
+			},
+			zero,
+			"missing EOF token at the end of source",
+		},
+		{
+			"unexpected token after EOF",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.SemicolonToken, Value: ";", Line: 6},
+				// Initial tape
+				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
+				// EOF
+				{Type: lexer.EOFToken, Value: "", Line: 7},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
+			},
+			zero,
+			"unexpected token after EOF token",
+		},
 	}
 	for _, d := range data {
 		t.Run(d.name, func(t *testing.T) {
