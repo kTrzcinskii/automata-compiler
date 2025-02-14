@@ -40,7 +40,7 @@ func (tm *TuringMachineCompiler) Compile() (automata.Automata, error) {
 	}
 	err = tm.checkForCorrectEndingSequnce()
 	if err != nil {
-		// It's more lexer error than user provider source,
+		// It's more lexer error than user provided source,
 		// so we don't include line here
 		return zero, err
 	}
@@ -218,7 +218,7 @@ func (tm *TuringMachineCompiler) processTransitionLeftSide(states map[string]aut
 		return zero, err
 	}
 	if _, ok := states[state.Value]; !ok {
-		return zero, fmt.Errorf("undefined state %s used in transition function", state.Value)
+		return zero, fmt.Errorf("undefined state %s used in transition function left side", state.Value)
 	}
 	if _, err := tm.consumeTokenWithType(lexer.CommaToken, atEndErrMsg); err != nil {
 		return zero, err
@@ -228,7 +228,7 @@ func (tm *TuringMachineCompiler) processTransitionLeftSide(states map[string]aut
 		return zero, err
 	}
 	if _, ok := symbols[symbol.Value]; !ok {
-		return zero, fmt.Errorf("undefined symbol %s used in transition function", symbol.Value)
+		return zero, fmt.Errorf("undefined symbol %s used in transition function left side", symbol.Value)
 	}
 	if _, err := tm.consumeTokenWithType(lexer.RightParenToken, atEndErrMsg); err != nil {
 		return zero, err
@@ -246,7 +246,7 @@ func (tm *TuringMachineCompiler) processTransitionRightSide(states map[string]au
 		return zero, err
 	}
 	if _, ok := states[state.Value]; !ok {
-		return zero, fmt.Errorf("undefined state %s used in transition function", state.Value)
+		return zero, fmt.Errorf("undefined state %s used in transition function right side", state.Value)
 	}
 	if _, err := tm.consumeTokenWithType(lexer.CommaToken, atEndErrMsg); err != nil {
 		return zero, err
@@ -256,7 +256,7 @@ func (tm *TuringMachineCompiler) processTransitionRightSide(states map[string]au
 		return zero, err
 	}
 	if _, ok := symbols[symbol.Value]; !ok {
-		return zero, fmt.Errorf("undefined symbol %s used in transition function", symbol.Value)
+		return zero, fmt.Errorf("undefined symbol %s used in transition function right side", symbol.Value)
 	}
 	if _, err := tm.consumeTokenWithType(lexer.CommaToken, atEndErrMsg); err != nil {
 		return zero, err

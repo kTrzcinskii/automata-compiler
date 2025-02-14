@@ -435,7 +435,180 @@ func TestCompile(t *testing.T) {
 			zero,
 			"[Line 6] unfinished transition",
 		},
-		// TODO: add more test for error paths in `processSingleTransition`
+		{
+			"undefined state in left side transition",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState5", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 6},
+			},
+			zero,
+			"[Line 6] undefined state qState5 used in transition function left side",
+		},
+		{
+			"undefined symbol in left side transition",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol4", Line: 6},
+			},
+			zero,
+			"[Line 6] undefined symbol symbol4 used in transition function left side",
+		},
+		{
+			"undefined state in right side transition",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				{Type: lexer.ArrowToken, Value: ">", Line: 6},
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState10", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.MoveRightToken, Value: "R", Line: 6},
+			},
+			zero,
+			"[Line 6] undefined state qState10 used in transition function right side",
+		},
+		{
+			"undefined symbol in right side transition",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				{Type: lexer.ArrowToken, Value: ">", Line: 6},
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol30", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.MoveRightToken, Value: "R", Line: 6},
+			},
+			zero,
+			"[Line 6] undefined symbol symbol30 used in transition function right side",
+		},
+		{
+			"invalid movement token in right side transition",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				{Type: lexer.ArrowToken, Value: ">", Line: 6},
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.ArrowToken, Value: ">", Line: 6},
+			},
+			zero,
+			"[Line 6] invalid token type, expected: MoveRightToken, got: ArrowToken",
+		},
 		{
 			"missing semicolon after tape section",
 			[]lexer.Token{
