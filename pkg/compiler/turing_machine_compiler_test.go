@@ -44,11 +44,10 @@ func TestNewTuringMachineCompiler(t *testing.T) {
 }
 
 func TestCompile(t *testing.T) {
-	var zero automata.TuringMachine
 	data := []struct {
 		name           string
 		tokens         []lexer.Token
-		expected       automata.TuringMachine
+		expected       *automata.TuringMachine
 		expectedErrMsg string
 	}{
 		{
@@ -110,14 +109,14 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
 				{Type: lexer.EOFToken, Value: "", Line: 7},
 			},
-			automata.TuringMachine{
+			&automata.TuringMachine{
 				States: map[string]automata.State{
 					"qState":  {Name: "qState"},
 					"qState2": {Name: "qState2", Accepting: true},
 					"qState3": {Name: "qState3", Accepting: true},
 					"qState4": {Name: "qState4"},
 				},
-				InitialState: "qState",
+				CurrentState: "qState",
 				Symbols: map[string]automata.Symbol{
 					"symbol1": {Name: "symbol1"},
 					"symbol2": {Name: "symbol2"},
@@ -144,7 +143,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState3", Line: 1},
 				{Type: lexer.StateToken, Value: "qState4", Line: 1},
 			},
-			zero,
+			nil,
 			"[Line 1] missing ';' at the end of states section",
 		},
 		{
@@ -153,7 +152,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState", Line: 1},
 				{Type: lexer.StateToken, Value: "qState", Line: 1},
 			},
-			zero,
+			nil,
 			"[Line 1] state qState already declared, each state must have unique name",
 		},
 		{
@@ -162,7 +161,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState", Line: 1},
 				{Type: lexer.SymbolToken, Value: "Symbol", Line: 1},
 			},
-			zero,
+			nil,
 			"[Line 1] invalid token type, expected: StateToken or SemicolonToken, got: SymbolToken",
 		},
 		{
@@ -174,7 +173,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState4", Line: 1},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
 			},
-			zero,
+			nil,
 			"[Line 3] missing initial state section",
 		},
 		{
@@ -187,7 +186,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
 				{Type: lexer.SymbolToken, Value: "symbol", Line: 3},
 			},
-			zero,
+			nil,
 			"[Line 3] invalid token type, expected: StateToken, got: SymbolToken",
 		},
 		{
@@ -200,7 +199,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
 				{Type: lexer.StateToken, Value: "qState5", Line: 3},
 			},
-			zero,
+			nil,
 			"[Line 3] invalid initial state, state qState5 was not declared in states list",
 		},
 		{
@@ -213,7 +212,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
 				{Type: lexer.StateToken, Value: "qState", Line: 3},
 			},
-			zero,
+			nil,
 			"[Line 3] missing ';' after initial state",
 		},
 		{
@@ -228,7 +227,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
 				{Type: lexer.StateToken, Value: "qState3", Line: 4},
 			},
-			zero,
+			nil,
 			"[Line 4] missing ';' at the end of accepting states section",
 		},
 		{
@@ -244,7 +243,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.ArrowToken, Value: ">", Line: 3},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
 			},
-			zero,
+			nil,
 			"[Line 3] invalid token type, expected: StateToken or SemicolonToken, got: ArrowToken",
 		},
 		{
@@ -260,7 +259,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.StateToken, Value: "qState5", Line: 4},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
 			},
-			zero,
+			nil,
 			"[Line 4] state qState5 not found, any accepting state must be defined in state list",
 		},
 		{
@@ -280,7 +279,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
 			},
-			zero,
+			nil,
 			"[Line 5] missing ';' at the end of symbols section",
 		},
 		{
@@ -301,7 +300,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
 			},
-			zero,
+			nil,
 			"[Line 5] invalid token type, expected: SymbolToken or SemicolonToken, got: LeftParenToken",
 		},
 		{
@@ -321,7 +320,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
 			},
-			zero,
+			nil,
 			"[Line 5] symbol symbol1 already declared, each symbol must have unique name",
 		},
 		{
@@ -375,7 +374,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.MoveRightToken, Value: "R", Line: 6},
 				{Type: lexer.RightParenToken, Value: ")", Line: 6},
 			},
-			zero,
+			nil,
 			"[Line 6] missing ';' at the end of transitions section",
 		},
 		{
@@ -402,7 +401,7 @@ func TestCompile(t *testing.T) {
 				// Transitions
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
 			},
-			zero,
+			nil,
 			"[Line 5] invalid token type, expected: LeftParenToken or SemicolonToken, got: SymbolToken",
 		},
 		{
@@ -432,7 +431,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.CommaToken, Value: ",", Line: 6},
 				{Type: lexer.SymbolToken, Value: "symbol1", Line: 6},
 			},
-			zero,
+			nil,
 			"[Line 6] unfinished transition",
 		},
 		{
@@ -462,7 +461,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.CommaToken, Value: ",", Line: 6},
 				{Type: lexer.SymbolToken, Value: "symbol1", Line: 6},
 			},
-			zero,
+			nil,
 			"[Line 6] undefined state qState5 used in transition function left side",
 		},
 		{
@@ -492,7 +491,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.CommaToken, Value: ",", Line: 6},
 				{Type: lexer.SymbolToken, Value: "symbol4", Line: 6},
 			},
-			zero,
+			nil,
 			"[Line 6] undefined symbol symbol4 used in transition function left side",
 		},
 		{
@@ -530,7 +529,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.CommaToken, Value: ",", Line: 6},
 				{Type: lexer.MoveRightToken, Value: "R", Line: 6},
 			},
-			zero,
+			nil,
 			"[Line 6] undefined state qState10 used in transition function right side",
 		},
 		{
@@ -568,7 +567,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.CommaToken, Value: ",", Line: 6},
 				{Type: lexer.MoveRightToken, Value: "R", Line: 6},
 			},
-			zero,
+			nil,
 			"[Line 6] undefined symbol symbol30 used in transition function right side",
 		},
 		{
@@ -606,7 +605,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.CommaToken, Value: ",", Line: 6},
 				{Type: lexer.ArrowToken, Value: ">", Line: 6},
 			},
-			zero,
+			nil,
 			"[Line 6] invalid token type, expected: MoveRightToken, got: ArrowToken",
 		},
 		{
@@ -638,7 +637,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol2", Line: 7},
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 7},
 			},
-			zero,
+			nil,
 			"[Line 7] missing ';' at the end of tape section",
 		},
 		{
@@ -667,7 +666,7 @@ func TestCompile(t *testing.T) {
 				// Initial tape
 				{Type: lexer.SymbolToken, Value: "symbol100", Line: 7},
 			},
-			zero,
+			nil,
 			"[Line 7] invalid symbol symbol100 in initial tape, each symbol must be defined in symbols section",
 		},
 		{
@@ -696,7 +695,7 @@ func TestCompile(t *testing.T) {
 				// Initial tape
 				{Type: lexer.ArrowToken, Value: ">", Line: 7},
 			},
-			zero,
+			nil,
 			"[Line 7] invalid token type, expected: SemicolonToken or SymbolToken, got: ArrowToken",
 		},
 		{
@@ -725,7 +724,7 @@ func TestCompile(t *testing.T) {
 				// Initial tape
 				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
 			},
-			zero,
+			nil,
 			"missing EOF token at the end of source",
 		},
 		{
@@ -757,7 +756,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.EOFToken, Value: "", Line: 7},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
 			},
-			zero,
+			nil,
 			"unexpected token after EOF token",
 		},
 	}
@@ -765,8 +764,10 @@ func TestCompile(t *testing.T) {
 		t.Run(d.name, func(t *testing.T) {
 			tmc := NewTuringMachineCompiler(d.tokens)
 			result, err := tmc.Compile()
-			if diff := cmp.Diff(d.expected, result); diff != "" {
-				t.Error(diff)
+			if !(d.expected == nil && result == nil) {
+				if diff := cmp.Diff(d.expected, result); diff != "" {
+					t.Error(diff)
+				}
 			}
 			var errMsg string
 			if err != nil {

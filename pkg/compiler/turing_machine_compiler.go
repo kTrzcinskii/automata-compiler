@@ -13,38 +13,37 @@ type TuringMachineCompiler struct {
 }
 
 func (tm *TuringMachineCompiler) Compile() (automata.Automata, error) {
-	var zero automata.TuringMachine
 	states, err := tm.processStates()
 	if err != nil {
-		return zero, tm.addLinePrefixForErrPrevToken(err)
+		return nil, tm.addLinePrefixForErrPrevToken(err)
 	}
 	initialState, err := tm.processInitialState(states)
 	if err != nil {
-		return zero, tm.addLinePrefixForErrPrevToken(err)
+		return nil, tm.addLinePrefixForErrPrevToken(err)
 	}
 	err = tm.processAcceptingStates(states)
 	if err != nil {
-		return zero, tm.addLinePrefixForErrPrevToken(err)
+		return nil, tm.addLinePrefixForErrPrevToken(err)
 	}
 	symbols, err := tm.processSymbols()
 	if err != nil {
-		return zero, tm.addLinePrefixForErrPrevToken(err)
+		return nil, tm.addLinePrefixForErrPrevToken(err)
 	}
 	tf, err := tm.processTransitions(states, symbols)
 	if err != nil {
-		return zero, tm.addLinePrefixForErrPrevToken(err)
+		return nil, tm.addLinePrefixForErrPrevToken(err)
 	}
 	initialTape, err := tm.processTape(symbols)
 	if err != nil {
-		return zero, tm.addLinePrefixForErrPrevToken(err)
+		return nil, tm.addLinePrefixForErrPrevToken(err)
 	}
 	err = tm.checkForCorrectEndingSequnce()
 	if err != nil {
 		// It's more lexer error than user provided source,
 		// so we don't include line here
-		return zero, err
+		return nil, err
 	}
-	return automata.TuringMachine{States: states, InitialState: initialState, Symbols: symbols, Transitions: tf, Tape: initialTape}, nil
+	return &automata.TuringMachine{States: states, CurrentState: initialState, Symbols: symbols, Transitions: tf, Tape: initialTape}, nil
 }
 
 func NewTuringMachineCompiler(tokens []lexer.Token) *TuringMachineCompiler {
