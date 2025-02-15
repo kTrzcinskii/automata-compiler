@@ -18,6 +18,8 @@ type Symbol struct {
 	// TODO: I think we need more fields here (may be in different kinds of automata?)
 }
 
+var BlankSymbol = Symbol{Name: "B"}
+
 type TapeMoveType int
 
 const (
