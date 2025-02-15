@@ -1,6 +1,7 @@
 package automata
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -45,16 +46,23 @@ func (tmr TuringMachineResult) tapeString() string {
 	return strings.Join(tape, "|")
 }
 
-func (tm *TuringMachine) Run() (AutomataResult, error) {
-	for !tm.isInAcceptingState() {
-		if err := tm.makeTransition(); err != nil {
-			var zero TuringMachineResult
-			return zero, err
+func (tm *TuringMachine) Run(ctx context.Context) (AutomataResult, error) {
+	var zero TuringMachineResult
+	for {
+		select {
+		case <-ctx.Done():
+			return zero, errors.New("timeout reached")
+		default:
+			if tm.isInAcceptingState() {
+				finalState := tm.States[tm.CurrentState]
+				finalTape := tm.getFinalTape()
+				return TuringMachineResult{FinalState: finalState, FinalTape: finalTape}, nil
+			}
+			if err := tm.makeTransition(); err != nil {
+				return zero, err
+			}
 		}
 	}
-	finalState := tm.States[tm.CurrentState]
-	finalTape := tm.getFinalTape()
-	return TuringMachineResult{FinalState: finalState, FinalTape: finalTape}, nil
 }
 
 func (tm TuringMachine) isInAcceptingState() bool {

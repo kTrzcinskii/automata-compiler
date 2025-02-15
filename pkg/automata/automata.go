@@ -1,7 +1,9 @@
 package automata
 
+import "context"
+
 type Automata interface {
-	Run() (AutomataResult, error)
+	Run(ctx context.Context) (AutomataResult, error)
 }
 
 type AutomataResult interface {

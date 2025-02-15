@@ -1,6 +1,7 @@
 package automata
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -30,6 +31,7 @@ func TestRun(t *testing.T) {
 	data := []struct {
 		name           string
 		tm             *TuringMachine
+		ctx            context.Context
 		expected       TuringMachineResult
 		expectedErrMsg string
 	}{
@@ -50,6 +52,7 @@ func TestRun(t *testing.T) {
 				},
 				TapeIt: 0,
 			},
+			context.Background(),
 			TuringMachineResult{
 				FinalState: State{Name: "qState", Accepting: true},
 				FinalTape: []Symbol{
@@ -83,6 +86,7 @@ func TestRun(t *testing.T) {
 				},
 				TapeIt: 0,
 			},
+			context.Background(),
 			TuringMachineResult{
 				FinalState: State{Name: "qState3", Accepting: true},
 				FinalTape: []Symbol{
@@ -114,6 +118,7 @@ func TestRun(t *testing.T) {
 				},
 				TapeIt: 0,
 			},
+			context.Background(),
 			TuringMachineResult{
 				FinalState: State{Name: "qState2", Accepting: true},
 				FinalTape: []Symbol{
@@ -141,6 +146,7 @@ func TestRun(t *testing.T) {
 				},
 				TapeIt: 0,
 			},
+			context.Background(),
 			zero,
 			"cannot continue calucations, missing transition for state qState and symbol symbol1",
 		},
@@ -163,13 +169,15 @@ func TestRun(t *testing.T) {
 				},
 				TapeIt: 0,
 			},
+			context.Background(),
 			zero,
 			"cannot continue calucations, turing machine went out of tape",
 		},
+		// TODO: add test for timeout
 	}
 	for _, d := range data {
 		t.Run(d.name, func(t *testing.T) {
-			result, err := d.tm.Run()
+			result, err := d.tm.Run(d.ctx)
 			if diff := cmp.Diff(d.expected, result); diff != "" {
 				t.Error(diff)
 			}
