@@ -122,9 +122,9 @@ func TestScanTokens(t *testing.T) {
 		},
 		{
 			"invalid token",
-			"1234",
+			"|321321",
 			zeroTokens,
-			"unknown symbol (1) at line (1)",
+			"[Line 1] unknown symbol |",
 		},
 		{
 			"all",

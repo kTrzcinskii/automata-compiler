@@ -79,12 +79,12 @@ func (l *Lexer) scanToken() (Token, error) {
 	case "B":
 		return Token{Type: BlankSymbolToken, Value: c, Line: l.line}, nil
 	default:
-		if unicode.IsLetter(r) {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			symbol := l.readAlphanumeric()
 			return Token{Type: SymbolToken, Value: symbol, Line: l.line}, nil
 		}
 		var zero Token
-		return zero, fmt.Errorf("unknown symbol (%s) at line (%d)", c, l.line)
+		return zero, fmt.Errorf("[Line %d] unknown symbol %s", l.line, c)
 	}
 }
 
