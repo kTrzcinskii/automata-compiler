@@ -43,7 +43,7 @@ func (tm *TuringMachineCompiler) Compile() (automata.Automata, error) {
 		// so we don't include line here
 		return nil, err
 	}
-	return &automata.TuringMachine{States: states, CurrentState: initialState, Symbols: symbols, Transitions: tf, Tape: initialTape}, nil
+	return &automata.TuringMachine{States: states, CurrentState: initialState, Symbols: symbols, Transitions: tf, Tape: initialTape, TapeIt: 0}, nil
 }
 
 func NewTuringMachineCompiler(tokens []lexer.Token) *TuringMachineCompiler {
@@ -104,6 +104,9 @@ func (tm *TuringMachineCompiler) processStates() (map[string]automata.State, err
 		t := tm.advance()
 		switch t.Type {
 		case lexer.SemicolonToken:
+			if len(states) == 0 {
+				return nil, errors.New("there must be at least one state defined")
+			}
 			return states, nil
 		case lexer.StateToken:
 			name := t.Value
@@ -153,6 +156,7 @@ func (tm *TuringMachineCompiler) processAcceptingStates(states map[string]automa
 
 func (tm *TuringMachineCompiler) processSymbols() (map[string]automata.Symbol, error) {
 	symbols := make(map[string]automata.Symbol)
+	symbols[automata.BlankSymbol.Name] = automata.BlankSymbol
 	for !tm.isAtEnd() {
 		t := tm.advance()
 		switch t.Type {
@@ -285,14 +289,19 @@ func (tm *TuringMachineCompiler) processTape(symbols map[string]automata.Symbol)
 		t := tm.advance()
 		switch t.Type {
 		case lexer.SemicolonToken:
+			if len(tape) == 0 {
+				tape = append(tape, automata.BlankSymbol.Name)
+			}
 			return tape, nil
 		case lexer.SymbolToken:
 			if _, ok := symbols[t.Value]; !ok {
 				return nil, fmt.Errorf("invalid symbol %s in initial tape, each symbol must be defined in symbols section", t.Value)
 			}
 			tape = append(tape, t.Value)
+		case lexer.BlankSymbolToken:
+			tape = append(tape, t.Value)
 		default:
-			return nil, fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.SemicolonToken.String(), lexer.SymbolToken.String(), t.Type.String())
+			return nil, fmt.Errorf("invalid token type, expected: %s, %s or %s, got: %s", lexer.SemicolonToken.String(), lexer.SymbolToken.String(), lexer.BlankSymbolToken.String(), t.Type.String())
 		}
 	}
 	return nil, errors.New("missing ';' at the end of tape section")

@@ -105,6 +105,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SymbolToken, Value: "symbol2", Line: 7},
 				{Type: lexer.SymbolToken, Value: "symbol1", Line: 7},
 				{Type: lexer.SymbolToken, Value: "symbol2", Line: 7},
+				{Type: lexer.BlankSymbolToken, Value: "B", Line: 7},
 				{Type: lexer.SymbolToken, Value: "symbol3", Line: 7},
 				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
 				{Type: lexer.EOFToken, Value: "", Line: 7},
@@ -118,9 +119,10 @@ func TestCompile(t *testing.T) {
 				},
 				CurrentState: "qState",
 				Symbols: map[string]automata.Symbol{
-					"symbol1": {Name: "symbol1"},
-					"symbol2": {Name: "symbol2"},
-					"symbol3": {Name: "symbol3"},
+					automata.BlankSymbol.Name: automata.BlankSymbol,
+					"symbol1":                 {Name: "symbol1"},
+					"symbol2":                 {Name: "symbol2"},
+					"symbol3":                 {Name: "symbol3"},
 				},
 				Transitions: map[automata.TMTransitionKey]automata.TMTransitionValue{
 					{StateName: "qState", SymbolName: "symbol1"}:  {StateName: "qState2", SymbolName: "symbol2", Move: automata.TapeMoveLeft},
@@ -130,8 +132,10 @@ func TestCompile(t *testing.T) {
 					"symbol2",
 					"symbol1",
 					"symbol2",
+					"B",
 					"symbol3",
 				},
+				TapeIt: 0,
 			},
 			"",
 		},
@@ -163,6 +167,14 @@ func TestCompile(t *testing.T) {
 			},
 			nil,
 			"[Line 1] invalid token type, expected: StateToken or SemicolonToken, got: SymbolToken",
+		},
+		{
+			"no state defined",
+			[]lexer.Token{
+				{Type: lexer.SemicolonToken, Value: ";", Line: 1},
+			},
+			nil,
+			"[Line 1] there must be at least one state defined",
 		},
 		{
 			"missing initial state",
@@ -696,7 +708,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.ArrowToken, Value: ">", Line: 7},
 			},
 			nil,
-			"[Line 7] invalid token type, expected: SemicolonToken or SymbolToken, got: ArrowToken",
+			"[Line 7] invalid token type, expected: SemicolonToken, SymbolToken or BlankSymbolToken, got: ArrowToken",
 		},
 		{
 			"missing EOF at the end of token list",
@@ -759,6 +771,67 @@ func TestCompile(t *testing.T) {
 			nil,
 			"unexpected token after EOF token",
 		},
+		{
+			"invalid usage of blank symbol in user-defined symbols",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.StateToken, Value: "qState2", Line: 1},
+				{Type: lexer.StateToken, Value: "qState3", Line: 1},
+				{Type: lexer.StateToken, Value: "qState4", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.StateToken, Value: "qState2", Line: 4},
+				{Type: lexer.StateToken, Value: "qState3", Line: 4},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SymbolToken, Value: "symbol1", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol2", Line: 5},
+				{Type: lexer.SymbolToken, Value: "symbol3", Line: 5},
+				{Type: lexer.BlankSymbolToken, Value: "B", Line: 5},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+			},
+			nil,
+			"[Line 5] invalid token type, expected: SymbolToken or SemicolonToken, got: BlankSymbolToken",
+		},
+		{
+			"empty tape should contain one blank symbol",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.SemicolonToken, Value: ";", Line: 6},
+				// Initial tape
+				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
+				{Type: lexer.EOFToken, Value: "", Line: 7},
+			},
+			&automata.TuringMachine{
+				States: map[string]automata.State{
+					"qState": {Name: "qState"},
+				},
+				CurrentState: "qState",
+				Symbols: map[string]automata.Symbol{
+					automata.BlankSymbol.Name: automata.BlankSymbol,
+				},
+				Transitions: map[automata.TMTransitionKey]automata.TMTransitionValue{},
+				Tape: []string{
+					"B",
+				},
+				TapeIt: 0,
+			},
+			"",
+		},
 	}
 	for _, d := range data {
 		t.Run(d.name, func(t *testing.T) {
@@ -776,7 +849,6 @@ func TestCompile(t *testing.T) {
 			if errMsg != d.expectedErrMsg {
 				t.Errorf("invalid error message, expected: %s, got: %s", d.expectedErrMsg, errMsg)
 			}
-
 		})
 	}
 }
