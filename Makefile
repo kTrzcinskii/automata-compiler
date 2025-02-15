@@ -12,7 +12,7 @@ staticcheck: vet
 	staticcheck ./...
 
 build: staticcheck
-	go build -o ./build/automata-compiler ./cmd/automata-compiler
+	go build -o ./build/automata-compiler
 
 clean:
 	rm -rf build/*
