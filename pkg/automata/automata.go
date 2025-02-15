@@ -1,7 +1,11 @@
 package automata
 
 type Automata interface {
-	// TODO:
+	Run() (AutomataResult, error)
+}
+
+type AutomataResult interface {
+	String() string
 }
 
 type State struct {
