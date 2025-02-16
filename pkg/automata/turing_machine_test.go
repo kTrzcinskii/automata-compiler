@@ -3,6 +3,7 @@ package automata
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -31,7 +32,7 @@ func TestRun(t *testing.T) {
 	data := []struct {
 		name           string
 		tm             *TuringMachine
-		ctx            context.Context
+		timeout        int
 		expected       TuringMachineResult
 		expectedErrMsg string
 	}{
@@ -52,7 +53,7 @@ func TestRun(t *testing.T) {
 				},
 				TapeIt: 0,
 			},
-			context.Background(),
+			0,
 			TuringMachineResult{
 				FinalState: State{Name: "qState", Accepting: true},
 				FinalTape: []Symbol{
@@ -86,7 +87,7 @@ func TestRun(t *testing.T) {
 				},
 				TapeIt: 0,
 			},
-			context.Background(),
+			0,
 			TuringMachineResult{
 				FinalState: State{Name: "qState3", Accepting: true},
 				FinalTape: []Symbol{
@@ -118,7 +119,7 @@ func TestRun(t *testing.T) {
 				},
 				TapeIt: 0,
 			},
-			context.Background(),
+			0,
 			TuringMachineResult{
 				FinalState: State{Name: "qState2", Accepting: true},
 				FinalTape: []Symbol{
@@ -146,12 +147,12 @@ func TestRun(t *testing.T) {
 				},
 				TapeIt: 0,
 			},
-			context.Background(),
+			0,
 			zero,
 			"cannot continue calucations, missing transition for state qState and symbol symbol1",
 		},
 		{
-			"missing transition",
+			"go out of tape",
 			&TuringMachine{
 				States: map[string]State{
 					"qState": {Name: "qState"},
@@ -169,15 +170,46 @@ func TestRun(t *testing.T) {
 				},
 				TapeIt: 0,
 			},
-			context.Background(),
+			0,
 			zero,
 			"cannot continue calucations, turing machine went out of tape",
 		},
-		// TODO: add test for timeout
+		{
+			"infinite loop with timeout",
+			&TuringMachine{
+				States: map[string]State{
+					"q0": {Name: "q0"},
+					"q1": {Name: "q1"},
+				},
+				CurrentState: "q0",
+				Symbols: map[string]Symbol{
+					BlankSymbol.Name: BlankSymbol,
+				},
+				Transitions: map[TMTransitionKey]TMTransitionValue{
+					{StateName: "q0", SymbolName: BlankSymbol.Name}: {StateName: "q1", SymbolName: BlankSymbol.Name, Move: TapeMoveRight},
+					{StateName: "q1", SymbolName: BlankSymbol.Name}: {StateName: "q0", SymbolName: BlankSymbol.Name, Move: TapeMoveLeft},
+				},
+				Tape: []string{
+					BlankSymbol.Name,
+				},
+				TapeIt: 0,
+			},
+			500,
+			zero,
+			"timeout reached",
+		},
 	}
 	for _, d := range data {
 		t.Run(d.name, func(t *testing.T) {
-			result, err := d.tm.Run(d.ctx)
+			var ctx context.Context
+			if d.timeout == 0 {
+				ctx = context.Background()
+			} else {
+				ctxWithT, cancelFunc := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(d.timeout))
+				ctx = ctxWithT
+				defer cancelFunc()
+			}
+			result, err := d.tm.Run(ctx)
 			if diff := cmp.Diff(d.expected, result); diff != "" {
 				t.Error(diff)
 			}
