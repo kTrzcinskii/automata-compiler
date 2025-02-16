@@ -5,6 +5,7 @@ import (
 	"automata-compiler/pkg/lexer"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type TuringMachineCompiler struct {
@@ -64,20 +65,31 @@ func (tm *TuringMachineCompiler) advance() lexer.Token {
 	return t
 }
 
-func checkTokenType(t lexer.Token, expected lexer.TokenType) error {
-	if t.Type != expected {
-		return fmt.Errorf("invalid token type, expected: %s, got: %s", expected.String(), t.Type.String())
+func checkTokenType(t lexer.Token, expected ...lexer.TokenType) error {
+	if expected == nil {
+		panic("no token type provided")
 	}
-	return nil
+	expectedStr := make([]string, 0, len(expected))
+	for _, v := range expected {
+		if t.Type == v {
+			return nil
+		}
+		expectedStr = append(expectedStr, v.String())
+	}
+	if len(expected) == 1 {
+		return fmt.Errorf("invalid token type, expected: %s, got: %s", expectedStr[0], t.Type.String())
+	}
+	all := strings.Join(expectedStr, ", ")
+	return fmt.Errorf("invalid token type, expected one of: %s, got: %s", all, t.Type.String())
 }
 
-func (tm *TuringMachineCompiler) consumeTokenWithType(expected lexer.TokenType, atEndErrMsg string) (lexer.Token, error) {
+func (tm *TuringMachineCompiler) consumeTokenWithType(atEndErrMsg string, expected ...lexer.TokenType) (lexer.Token, error) {
 	var zero lexer.Token
 	if tm.isAtEnd() {
 		return zero, errors.New(atEndErrMsg)
 	}
 	token := tm.advance()
-	if err := checkTokenType(token, expected); err != nil {
+	if err := checkTokenType(token, expected...); err != nil {
 		return zero, err
 	}
 	return token, nil
@@ -122,7 +134,7 @@ func (tm *TuringMachineCompiler) processStates() (map[string]automata.State, err
 }
 
 func (tm *TuringMachineCompiler) processInitialState(states map[string]automata.State) (string, error) {
-	initialState, err := tm.consumeTokenWithType(lexer.StateToken, "missing initial state section")
+	initialState, err := tm.consumeTokenWithType("missing initial state section", lexer.StateToken)
 	if err != nil {
 		return "", err
 	}
@@ -203,7 +215,7 @@ func (tm *TuringMachineCompiler) processSingleTransition(states map[string]autom
 	if err != nil {
 		return err
 	}
-	if _, err := tm.consumeTokenWithType(lexer.ArrowToken, atEndErrMsg); err != nil {
+	if _, err := tm.consumeTokenWithType(atEndErrMsg, lexer.ArrowToken); err != nil {
 		return err
 	}
 	rightSide, err := tm.processTransitionRightSide(states, symbols, atEndErrMsg)
@@ -216,24 +228,24 @@ func (tm *TuringMachineCompiler) processSingleTransition(states map[string]autom
 
 func (tm *TuringMachineCompiler) processTransitionLeftSide(states map[string]automata.State, symbols map[string]automata.Symbol, atEndErrMsg string) (automata.TMTransitionKey, error) {
 	var zero automata.TMTransitionKey
-	state, err := tm.consumeTokenWithType(lexer.StateToken, atEndErrMsg)
+	state, err := tm.consumeTokenWithType(atEndErrMsg, lexer.StateToken)
 	if err != nil {
 		return zero, err
 	}
 	if _, ok := states[state.Value]; !ok {
 		return zero, fmt.Errorf("undefined state %s used in transition function left side", state.Value)
 	}
-	if _, err := tm.consumeTokenWithType(lexer.CommaToken, atEndErrMsg); err != nil {
+	if _, err := tm.consumeTokenWithType(atEndErrMsg, lexer.CommaToken); err != nil {
 		return zero, err
 	}
-	symbol, err := tm.consumeTokenWithType(lexer.SymbolToken, atEndErrMsg)
+	symbol, err := tm.consumeTokenWithType(atEndErrMsg, lexer.SymbolToken, lexer.BlankSymbolToken)
 	if err != nil {
 		return zero, err
 	}
 	if _, ok := symbols[symbol.Value]; !ok {
 		return zero, fmt.Errorf("undefined symbol %s used in transition function left side", symbol.Value)
 	}
-	if _, err := tm.consumeTokenWithType(lexer.RightParenToken, atEndErrMsg); err != nil {
+	if _, err := tm.consumeTokenWithType(atEndErrMsg, lexer.RightParenToken); err != nil {
 		return zero, err
 	}
 	return automata.TMTransitionKey{StateName: state.Value, SymbolName: symbol.Value}, nil
@@ -241,39 +253,34 @@ func (tm *TuringMachineCompiler) processTransitionLeftSide(states map[string]aut
 
 func (tm *TuringMachineCompiler) processTransitionRightSide(states map[string]automata.State, symbols map[string]automata.Symbol, atEndErrMsg string) (automata.TMTransitionValue, error) {
 	var zero automata.TMTransitionValue
-	if _, err := tm.consumeTokenWithType(lexer.LeftParenToken, atEndErrMsg); err != nil {
+	if _, err := tm.consumeTokenWithType(atEndErrMsg, lexer.LeftParenToken); err != nil {
 		return zero, err
 	}
-	state, err := tm.consumeTokenWithType(lexer.StateToken, atEndErrMsg)
+	state, err := tm.consumeTokenWithType(atEndErrMsg, lexer.StateToken)
 	if err != nil {
 		return zero, err
 	}
 	if _, ok := states[state.Value]; !ok {
 		return zero, fmt.Errorf("undefined state %s used in transition function right side", state.Value)
 	}
-	if _, err := tm.consumeTokenWithType(lexer.CommaToken, atEndErrMsg); err != nil {
+	if _, err := tm.consumeTokenWithType(atEndErrMsg, lexer.CommaToken); err != nil {
 		return zero, err
 	}
-	symbol, err := tm.consumeTokenWithType(lexer.SymbolToken, atEndErrMsg)
+	symbol, err := tm.consumeTokenWithType(atEndErrMsg, lexer.SymbolToken, lexer.BlankSymbolToken)
 	if err != nil {
 		return zero, err
 	}
 	if _, ok := symbols[symbol.Value]; !ok {
 		return zero, fmt.Errorf("undefined symbol %s used in transition function right side", symbol.Value)
 	}
-	if _, err := tm.consumeTokenWithType(lexer.CommaToken, atEndErrMsg); err != nil {
+	if _, err := tm.consumeTokenWithType(atEndErrMsg, lexer.CommaToken); err != nil {
 		return zero, err
 	}
-	move, err := tm.consumeTokenWithType(lexer.MoveLeftToken, atEndErrMsg)
+	move, err := tm.consumeTokenWithType(atEndErrMsg, lexer.MoveLeftToken, lexer.MoveRightToken)
 	if err != nil {
-		// We move back to try to consume it as right move
-		tm.it--
-		move, err = tm.consumeTokenWithType(lexer.MoveRightToken, atEndErrMsg)
-		if err != nil {
-			return zero, err
-		}
+		return zero, err
 	}
-	if _, err := tm.consumeTokenWithType(lexer.RightParenToken, atEndErrMsg); err != nil {
+	if _, err := tm.consumeTokenWithType(atEndErrMsg, lexer.RightParenToken); err != nil {
 		return zero, err
 	}
 	moveValue := automata.TapeMoveLeft
@@ -308,7 +315,7 @@ func (tm *TuringMachineCompiler) processTape(symbols map[string]automata.Symbol)
 }
 
 func (tm *TuringMachineCompiler) checkForCorrectEndingSequnce() error {
-	if _, err := tm.consumeTokenWithType(lexer.EOFToken, "missing EOF token at the end of source"); err != nil {
+	if _, err := tm.consumeTokenWithType("missing EOF token at the end of source", lexer.EOFToken); err != nil {
 		return err
 	}
 	if !tm.isAtEnd() {

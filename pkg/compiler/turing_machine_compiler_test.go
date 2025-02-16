@@ -618,7 +618,7 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.ArrowToken, Value: ">", Line: 6},
 			},
 			nil,
-			"[Line 6] invalid token type, expected: MoveRightToken, got: ArrowToken",
+			"[Line 6] invalid token type, expected one of: MoveLeftToken, MoveRightToken, got: ArrowToken",
 		},
 		{
 			"missing semicolon after tape section",
@@ -825,6 +825,56 @@ func TestCompile(t *testing.T) {
 					automata.BlankSymbol.Name: automata.BlankSymbol,
 				},
 				Transitions: map[automata.TMTransitionKey]automata.TMTransitionValue{},
+				Tape: []string{
+					"B",
+				},
+				TapeIt: 0,
+			},
+			"",
+		},
+		{
+			"blank symbol can be used in transitions",
+			[]lexer.Token{
+				// States
+				{Type: lexer.StateToken, Value: "qState", Line: 1},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 2},
+				// Initial state
+				{Type: lexer.StateToken, Value: "qState", Line: 3},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 3},
+				// Accepting states
+				{Type: lexer.SemicolonToken, Value: ";", Line: 4},
+				// Symbols
+				{Type: lexer.SemicolonToken, Value: ";", Line: 5},
+				// Transitions
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.BlankSymbolToken, Value: "B", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				{Type: lexer.ArrowToken, Value: ">", Line: 6},
+				{Type: lexer.LeftParenToken, Value: "(", Line: 6},
+				{Type: lexer.StateToken, Value: "qState", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.BlankSymbolToken, Value: "B", Line: 6},
+				{Type: lexer.CommaToken, Value: ",", Line: 6},
+				{Type: lexer.MoveLeftToken, Value: "R", Line: 6},
+				{Type: lexer.RightParenToken, Value: ")", Line: 6},
+				{Type: lexer.SemicolonToken, Value: ";", Line: 6},
+				// Initial tape
+				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
+				{Type: lexer.EOFToken, Value: "", Line: 7},
+			},
+			&automata.TuringMachine{
+				States: map[string]automata.State{
+					"qState": {Name: "qState"},
+				},
+				CurrentState: "qState",
+				Symbols: map[string]automata.Symbol{
+					automata.BlankSymbol.Name: automata.BlankSymbol,
+				},
+				Transitions: map[automata.TMTransitionKey]automata.TMTransitionValue{
+					{StateName: "qState", SymbolName: automata.BlankSymbol.Name}: {StateName: "qState", SymbolName: automata.BlankSymbol.Name, Move: automata.TapeMoveLeft},
+				},
 				Tape: []string{
 					"B",
 				},
