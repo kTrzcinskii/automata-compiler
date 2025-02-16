@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"automata-compiler/pkg/automata"
 	"automata-compiler/pkg/compiler"
 	"automata-compiler/pkg/lexer"
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -31,14 +33,22 @@ func Execute() {
 	}
 }
 
-const (
-	TimeoutFlag      = "timeout"
-	TimeoutFlagShort = "t"
+type flag struct {
+	name  string
+	short string
+}
+
+var (
+	timeoutFlag         = flag{name: "timeout", short: "t"}
+	output              = flag{name: "output", short: "o"}
+	includeCalculations = flag{name: "include-calculations", short: "i"}
 )
 
 func init() {
 	// Here you will define your flags and configuration settings.
-	rootCmd.Flags().Uint32P(TimeoutFlag, TimeoutFlagShort, 3000, "Timeout in miliseconds after which program will stop any remaining calculations. It's useful as many automatas can enter infinite loop for some input values. Set this value to 0 if you don't want any timeout.")
+	rootCmd.Flags().Uint32P(timeoutFlag.name, timeoutFlag.short, 3000, "Timeout in miliseconds after which program will stop any remaining calculations. It's useful as many automatas can enter infinite loop for some input values. Set this value to 0 if you don't want any timeout.")
+	rootCmd.Flags().StringP(output.name, output.short, "", "Use this flag to specify filepath where output should be placed. If you want to use `stdout` leave this option empty.")
+	rootCmd.Flags().BoolP(includeCalculations.name, includeCalculations.short, false, "If set to true all calculations done by automata will be written to output.")
 }
 
 func runRootCmd(cmd *cobra.Command, args []string) error {
@@ -59,22 +69,27 @@ func runRootCmd(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Error during compiling stage: %s\n", err.Error())
 		return nil
 	}
+	opts, cleanupFunc, err := automataOptions(cmd)
+	if err != nil {
+		return err
+	}
+	defer cleanupFunc()
 	ctx, cancelFunc, err := createCmdContext(cmd)
 	if err != nil {
 		return err
 	}
 	defer cancelFunc()
-	result, err := tm.Run(ctx)
+	result, err := tm.Run(ctx, opts)
 	if err != nil {
 		fmt.Printf("Error during running stage: %s\n", err.Error())
 		return nil
 	}
-	fmt.Printf("Calculations completed:\n\n%s\n", result.String())
+	result.SaveResult(opts.Output)
 	return nil
 }
 
 func createCmdContext(cmd *cobra.Command) (context.Context, context.CancelFunc, error) {
-	timeout, err := cmd.Flags().GetUint32(TimeoutFlag)
+	timeout, err := cmd.Flags().GetUint32(timeoutFlag.name)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -84,4 +99,37 @@ func createCmdContext(cmd *cobra.Command) (context.Context, context.CancelFunc, 
 	}
 	emptyFun := func() {}
 	return context.Background(), emptyFun, nil
+}
+
+func automataOptions(cmd *cobra.Command) (automata.AutomataOptions, func(), error) {
+	opts := automata.AutomataOptions{}
+	cleanupFunc := func() {}
+	// output
+	output, err := cmd.Flags().GetString(output.name)
+	if err != nil {
+		return opts, nil, err
+	}
+	if output == "" {
+		opts.Output = os.Stdout
+	} else {
+		err := os.MkdirAll(filepath.Dir(output), 0777)
+		if err != nil {
+			return opts, nil, err
+		}
+		f, err := os.Create(output)
+		if err != nil {
+			return opts, nil, err
+		}
+		opts.Output = f
+		cleanupFunc = func() {
+			f.Close()
+		}
+	}
+	// include calculations
+	ic, err := cmd.Flags().GetBool(includeCalculations.name)
+	if err != nil {
+		return opts, nil, err
+	}
+	opts.IncludeCalculations = ic
+	return opts, cleanupFunc, nil
 }
