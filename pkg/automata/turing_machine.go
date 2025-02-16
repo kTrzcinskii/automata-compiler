@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -34,29 +35,55 @@ type TuringMachineResult struct {
 	FinalTape  []Symbol
 }
 
-func (tmr TuringMachineResult) String() string {
-	return fmt.Sprintf("state: %s, tape: %s", tmr.FinalState.Name, tmr.tapeString())
+type TuringMachineCurrentCalculationsState struct {
+	State State
+	Tape  []Symbol
+	It    int
 }
 
-func (tmr TuringMachineResult) tapeString() string {
-	tape := make([]string, 0, len(tmr.FinalTape))
-	for _, v := range tmr.FinalTape {
-		tape = append(tape, v.Name)
+func (tmr TuringMachineResult) SaveResult(w io.Writer) error {
+	_, err := w.Write([]byte(fmt.Sprintf("final state: %s, tape: %s\n", tmr.FinalState.Name, tapeString(tmr.FinalTape))))
+	return err
+}
+
+func tapeString(tape []Symbol) string {
+	tapeStr := make([]string, 0, len(tape))
+	for _, v := range tape {
+		tapeStr = append(tapeStr, v.Name)
 	}
-	return strings.Join(tape, "|")
+	return strings.Join(tapeStr, "|")
 }
 
-func (tm *TuringMachine) Run(ctx context.Context) (AutomataResult, error) {
+func (tmc TuringMachineCurrentCalculationsState) SaveState(w io.Writer) error {
+	firstLine := fmt.Sprintf("current state: %s, tape: ", tmc.State.Name)
+	fpLen := len(firstLine)
+	firstLine += tapeString(tmc.Tape) + "\n"
+	offset := tmc.It * 2
+	secondLine := fmt.Sprintf("%s^\n", strings.Repeat(" ", fpLen+offset))
+	out := firstLine + secondLine
+	_, err := w.Write([]byte(out))
+	return err
+}
+
+func (tm *TuringMachine) Run(ctx context.Context, opts AutomataOptions) (AutomataResult, error) {
+	err := validateOpts(opts)
+	if err != nil {
+		panic(err)
+	}
 	var zero TuringMachineResult
 	for {
 		select {
 		case <-ctx.Done():
 			return zero, errors.New("timeout reached")
 		default:
+			if opts.IncludeCalculations {
+				err := tm.writeCurrentState(opts.Output)
+				if err != nil {
+					return zero, err
+				}
+			}
 			if tm.isInAcceptingState() {
-				finalState := tm.States[tm.CurrentState]
-				finalTape := tm.getFinalTape()
-				return TuringMachineResult{FinalState: finalState, FinalTape: finalTape}, nil
+				return tm.FinalState(), nil
 			}
 			if err := tm.makeTransition(); err != nil {
 				return zero, err
@@ -65,16 +92,35 @@ func (tm *TuringMachine) Run(ctx context.Context) (AutomataResult, error) {
 	}
 }
 
+func validateOpts(opts AutomataOptions) error {
+	if opts.Output == nil {
+		return errors.New("field `Output` must be set")
+	}
+	return nil
+}
+
+func (tm TuringMachine) CurrentCalculationsState() AutomataCurrentCalculationsState {
+	state := tm.States[tm.CurrentState]
+	tape := tm.getTape()
+	return TuringMachineCurrentCalculationsState{State: state, Tape: tape, It: tm.TapeIt}
+}
+
+func (tm TuringMachine) FinalState() AutomataResult {
+	finalState := tm.States[tm.CurrentState]
+	finalTape := tm.getTape()
+	return TuringMachineResult{FinalState: finalState, FinalTape: finalTape}
+}
+
 func (tm TuringMachine) isInAcceptingState() bool {
 	return tm.States[tm.CurrentState].Accepting
 }
 
-func (tm TuringMachine) getFinalTape() []Symbol {
-	finalTape := make([]Symbol, 0, len(tm.Tape))
+func (tm TuringMachine) getTape() []Symbol {
+	tape := make([]Symbol, 0, len(tm.Tape))
 	for _, v := range tm.Tape {
-		finalTape = append(finalTape, tm.Symbols[v])
+		tape = append(tape, tm.Symbols[v])
 	}
-	return finalTape
+	return tape
 }
 
 func (tm *TuringMachine) makeTransition() error {
@@ -100,4 +146,10 @@ func (tm *TuringMachine) makeTransition() error {
 		}
 	}
 	return nil
+}
+
+func (tm TuringMachine) writeCurrentState(w io.Writer) error {
+	cs := tm.CurrentCalculationsState()
+	err := cs.SaveState(w)
+	return err
 }
