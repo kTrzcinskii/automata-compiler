@@ -2,13 +2,15 @@ package automata
 
 import (
 	"context"
+	"io"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestString(t *testing.T) {
+func TestSaveResult(t *testing.T) {
 	tmr := TuringMachineResult{
 		FinalState: State{
 			Name:      "qState",
@@ -20,10 +22,34 @@ func TestString(t *testing.T) {
 			{Name: BlankSymbol.Name},
 		},
 	}
-	result := tmr.String()
-	expected := "state: qState, tape: s1|s2|B"
-	if result != expected {
-		t.Errorf("invalid result string, expected: %s, got: %s", expected, result)
+	var result strings.Builder
+	tmr.SaveResult(&result)
+	expected := "final state: qState, tape: s1|s2|B\n"
+	if result.String() != expected {
+		t.Errorf("invalid result string, expected:\n%s, got:\n%s", expected, result.String())
+	}
+}
+
+func TestSaveState(t *testing.T) {
+	tmc := TuringMachineCurrentCalculationsState{
+		State: State{
+			Name: "qState",
+		},
+		Tape: []Symbol{
+			{Name: "s1"},
+			{Name: "s2"},
+			{Name: BlankSymbol.Name},
+		},
+		It: 1,
+	}
+	var result strings.Builder
+	tmc.SaveState(&result)
+	expected := "current state: qState, tape: s1|s2|B\n"
+	id := strings.Index(expected, "s2")
+	spaces := strings.Repeat(" ", id)
+	expected += spaces + "^\n"
+	if result.String() != expected {
+		t.Errorf("invalid result string, expected:\n%s, got:\n%s", expected, result.String())
 	}
 }
 
@@ -33,6 +59,7 @@ func TestRun(t *testing.T) {
 		name           string
 		tm             *TuringMachine
 		timeout        int
+		options        AutomataOptions
 		expected       TuringMachineResult
 		expectedErrMsg string
 	}{
@@ -54,6 +81,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			0,
+			AutomataOptions{Output: io.Discard},
 			TuringMachineResult{
 				FinalState: State{Name: "qState", Accepting: true},
 				FinalTape: []Symbol{
@@ -88,6 +116,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			0,
+			AutomataOptions{Output: io.Discard},
 			TuringMachineResult{
 				FinalState: State{Name: "qState3", Accepting: true},
 				FinalTape: []Symbol{
@@ -120,6 +149,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			0,
+			AutomataOptions{Output: io.Discard},
 			TuringMachineResult{
 				FinalState: State{Name: "qState2", Accepting: true},
 				FinalTape: []Symbol{
@@ -148,6 +178,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			0,
+			AutomataOptions{Output: io.Discard},
 			zero,
 			"cannot continue calucations, missing transition for state qState and symbol symbol1",
 		},
@@ -171,6 +202,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			0,
+			AutomataOptions{Output: io.Discard},
 			zero,
 			"cannot continue calucations, turing machine went out of tape",
 		},
@@ -195,6 +227,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			500,
+			AutomataOptions{Output: io.Discard},
 			zero,
 			"timeout reached",
 		},
@@ -209,7 +242,7 @@ func TestRun(t *testing.T) {
 				ctx = ctxWithT
 				defer cancelFunc()
 			}
-			result, err := d.tm.Run(ctx)
+			result, err := d.tm.Run(ctx, d.options)
 			if diff := cmp.Diff(d.expected, result); diff != "" {
 				t.Error(diff)
 			}

@@ -58,7 +58,10 @@ func (tmc TuringMachineCurrentCalculationsState) SaveState(w io.Writer) error {
 	firstLine := fmt.Sprintf("current state: %s, tape: ", tmc.State.Name)
 	fpLen := len(firstLine)
 	firstLine += tapeString(tmc.Tape) + "\n"
-	offset := tmc.It * 2
+	offset := 0
+	for i := 0; i < tmc.It; i++ {
+		offset += len(tmc.Tape[i].Name) + 1
+	}
 	secondLine := fmt.Sprintf("%s^\n", strings.Repeat(" ", fpLen+offset))
 	out := firstLine + secondLine
 	_, err := w.Write([]byte(out))
