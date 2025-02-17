@@ -3,6 +3,7 @@ package automata
 import (
 	"context"
 	"io"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -308,5 +309,61 @@ func TestRunWithIncludedCalculations(t *testing.T) {
 	}
 	if errMsg != expectedErrMsg {
 		t.Errorf("invalid error message, expected: %s, got: %s", expectedErrMsg, errMsg)
+	}
+}
+
+func TestRunWithCalculationsOutputToFile(t *testing.T) {
+	output, err := os.CreateTemp(t.TempDir(), "temp-output")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer output.Close()
+	tm := &TuringMachine{
+		States: map[string]State{
+			"qState":  {Name: "qState"},
+			"qState2": {Name: "qState2", Accepting: true},
+		},
+		CurrentState: "qState",
+		Symbols: map[string]Symbol{
+			BlankSymbol.Name: BlankSymbol,
+		},
+		Transitions: map[TMTransitionKey]TMTransitionValue{
+			{StateName: "qState", SymbolName: BlankSymbol.Name}: {StateName: "qState2", SymbolName: BlankSymbol.Name, Move: TapeMoveRight},
+		},
+		Tape: []string{
+			BlankSymbol.Name,
+		},
+		TapeIt: 0,
+	}
+	opts := AutomataOptions{
+		Output:              output,
+		IncludeCalculations: true,
+	}
+	_, err = tm.Run(context.Background(), opts)
+	expectedFileContent := "current state: qState, tape: B\n"
+	l := len(expectedFileContent)
+	expectedFileContent += strings.Repeat(" ", l-2) + "^\n"
+	secondLine := "current state: qState2, tape: B|B\n"
+	l2 := len(secondLine)
+	secondLine += strings.Repeat(" ", l2-2) + "^\n"
+	expectedFileContent += secondLine
+	expectedErrMsg := ""
+	var errMsg string
+	if err != nil {
+		errMsg = err.Error()
+	}
+	if errMsg != expectedErrMsg {
+		t.Errorf("invalid error message, expected: %s, got: %s", expectedErrMsg, errMsg)
+	}
+	if err := output.Sync(); err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(output.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+	outputContent := string(b)
+	if outputContent != expectedFileContent {
+		t.Errorf("invalid file content, expected:\n%s, got:\n%s", expectedFileContent, outputContent)
 	}
 }
