@@ -155,8 +155,6 @@ func TestRun(t *testing.T) {
 				FinalState: State{Name: "qState2", Accepting: true},
 				FinalTape: []Symbol{
 					BlankSymbol,
-					BlankSymbol,
-					BlankSymbol,
 				},
 			},
 			"",
@@ -285,7 +283,6 @@ func TestRunWithIncludedCalculations(t *testing.T) {
 	expected := TuringMachineResult{
 		FinalState: State{Name: "qState2", Accepting: true},
 		FinalTape: []Symbol{
-			{Name: BlankSymbol.Name},
 			{Name: BlankSymbol.Name},
 		},
 	}

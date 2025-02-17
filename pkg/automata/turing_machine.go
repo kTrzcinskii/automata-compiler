@@ -110,8 +110,24 @@ func (tm TuringMachine) CurrentCalculationsState() AutomataCurrentCalculationsSt
 
 func (tm TuringMachine) FinalState() AutomataResult {
 	finalState := tm.States[tm.CurrentState]
-	finalTape := tm.getTape()
+	finalTape := removeUnnecessaryBlanks(tm.getTape())
 	return TuringMachineResult{FinalState: finalState, FinalTape: finalTape}
+}
+
+// removeUnnecessaryBlanks removes blank symbols starting from the end of the tape until there is at most one
+// blank symbol in the row at the end
+func removeUnnecessaryBlanks(tape []Symbol) []Symbol {
+	id := len(tape) - 1
+	for id > 0 {
+		if tape[id].Name == BlankSymbol.Name && tape[id-1].Name == BlankSymbol.Name {
+			id--
+		} else {
+			break
+		}
+	}
+	out := make([]Symbol, id+1)
+	copy(out, tape)
+	return out
 }
 
 func (tm TuringMachine) isInAcceptingState() bool {
