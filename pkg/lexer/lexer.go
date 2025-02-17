@@ -159,5 +159,8 @@ func (l *Lexer) skipLine() {
 			l.line++
 			break
 		}
+		if l.isAtEnd() {
+			break
+		}
 	}
 }

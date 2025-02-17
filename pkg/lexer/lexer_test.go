@@ -161,6 +161,15 @@ func TestScanTokens(t *testing.T) {
 			},
 			"",
 		},
+		{
+			"with comments at the end with no new line after last comment",
+			"qState\n#this line should be skipped\n#this should also be skipped",
+			[]Token{
+				{Type: StateToken, Value: "qState", Line: 1},
+				{Type: EOFToken, Value: "", Line: 3},
+			},
+			"",
+		},
 	}
 	for _, d := range data {
 		t.Run(d.name, func(t *testing.T) {
