@@ -256,3 +256,57 @@ func TestRun(t *testing.T) {
 		})
 	}
 }
+
+func TestRunWithIncludedCalculations(t *testing.T) {
+	tm := &TuringMachine{
+		States: map[string]State{
+			"qState":  {Name: "qState"},
+			"qState2": {Name: "qState2", Accepting: true},
+		},
+		CurrentState: "qState",
+		Symbols: map[string]Symbol{
+			BlankSymbol.Name: BlankSymbol,
+		},
+		Transitions: map[TMTransitionKey]TMTransitionValue{
+			{StateName: "qState", SymbolName: BlankSymbol.Name}: {StateName: "qState2", SymbolName: BlankSymbol.Name, Move: TapeMoveRight},
+		},
+		Tape: []string{
+			BlankSymbol.Name,
+		},
+		TapeIt: 0,
+	}
+	sb := &strings.Builder{}
+	opts := AutomataOptions{
+		Output:              sb,
+		IncludeCalculations: true,
+	}
+	result, err := tm.Run(context.Background(), opts)
+	expected := TuringMachineResult{
+		FinalState: State{Name: "qState2", Accepting: true},
+		FinalTape: []Symbol{
+			{Name: BlankSymbol.Name},
+			{Name: BlankSymbol.Name},
+		},
+	}
+	expectedCalculations := "current state: qState, tape: B\n"
+	l := len(expectedCalculations)
+	expectedCalculations += strings.Repeat(" ", l-2) + "^\n"
+	secondLine := "current state: qState2, tape: B|B\n"
+	l2 := len(secondLine)
+	secondLine += strings.Repeat(" ", l2-2) + "^\n"
+	expectedCalculations += secondLine
+	expectedErrMsg := ""
+	if diff := cmp.Diff(expected, result); diff != "" {
+		t.Error(diff)
+	}
+	if expectedCalculations != sb.String() {
+		t.Errorf("invalid calculations, expected:\n%s, got:\n%s", expectedCalculations, sb.String())
+	}
+	var errMsg string
+	if err != nil {
+		errMsg = err.Error()
+	}
+	if errMsg != expectedErrMsg {
+		t.Errorf("invalid error message, expected: %s, got: %s", expectedErrMsg, errMsg)
+	}
+}
