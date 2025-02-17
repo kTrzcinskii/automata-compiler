@@ -1,8 +1,17 @@
 # Automata Compiler
 
-## Input format
+_Work in progress_
 
-### Turing Machine (standard model)
+## Supported Automata
+
+### Turing Machine (Standard Model)
+
+A Turing Machine uses a tape and a state to determine its next move. The model implemented in this application assumes that the tape is **one-way infinite**, meaning you can move indefinitely to the right. However, moving left beyond the starting position results in an error.
+
+If no transition is defined for a given state and symbol, the program terminates with an error. The final tape output is trimmed of any trailing `B` (blank symbols) except for one. For example, if the final tape is `S1|S1|S2|B|B|B`, the program returns `S1|S1|S2|B`.
+
+#### Input Format
+
 ```
 q0 q1 ... qn; [states]
 qs; [initial state]
@@ -15,17 +24,19 @@ a1 a2 ... an; [symbols]
 ...;
 
 a1 a1 a3 a8 ...; [initial tape]
-
 ```
 
-where:
-- Elements in each line are separated by a single whitespace.
-- Each state must start with the letter `q` followed by one or more alphanumeric characters.
-- After the last line of `symbols`, there is one empty line, and then each line is a transition-function element.
-- If for a given pair `(q, s)`, there is no transition defined, then computation terminates with an error.
-- `move` is either `L` (left) or `R` (right) (so `L` and `R` are reserved symbols and cannot be used for other names).
-- After transitions, there is one empty line, and then there is the `initial tape` state.
-- The Turing machine starts with the `initial state` pointing to the first element of the `initial tape`.
-- If a transition makes the Turing machine go outside of the tape, then computation terminates with an error.
-- There should be a semicolon after each section.
-- `B` is a reserved symbol (meaning blank symbol).
+#### Rules and Conventions
+- Each state must start with the letter `q`, followed by one or more alphanumeric characters.
+- `move` can be either:
+  - `L` (left)
+  - `R` (right)
+  - These symbols (`L` and `R`) are **reserved** and cannot be used for anything else.
+- The Turing Machine starts in the `initial state`, pointing at the **first element** of the `initial tape`.
+- Each section must be **terminated by a semicolon** (`;`).
+- `B` is a **reserved symbol** representing a blank space on the tape.
+
+#### Examples
+
+You can find example Turing Machine programs in the [examples/turing-machine](examples/turing-machine) directory.
+
