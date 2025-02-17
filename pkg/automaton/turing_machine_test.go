@@ -1,4 +1,4 @@
-package automata
+package automaton
 
 import (
 	"context"
@@ -60,7 +60,7 @@ func TestRun(t *testing.T) {
 		name           string
 		tm             *TuringMachine
 		timeout        int
-		options        AutomataOptions
+		options        AutomatonOptions
 		expected       TuringMachineResult
 		expectedErrMsg string
 	}{
@@ -82,7 +82,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			0,
-			AutomataOptions{Output: io.Discard},
+			AutomatonOptions{Output: io.Discard},
 			TuringMachineResult{
 				FinalState: State{Name: "qState", Accepting: true},
 				FinalTape: []Symbol{
@@ -117,7 +117,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			0,
-			AutomataOptions{Output: io.Discard},
+			AutomatonOptions{Output: io.Discard},
 			TuringMachineResult{
 				FinalState: State{Name: "qState3", Accepting: true},
 				FinalTape: []Symbol{
@@ -150,7 +150,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			0,
-			AutomataOptions{Output: io.Discard},
+			AutomatonOptions{Output: io.Discard},
 			TuringMachineResult{
 				FinalState: State{Name: "qState2", Accepting: true},
 				FinalTape: []Symbol{
@@ -177,7 +177,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			0,
-			AutomataOptions{Output: io.Discard},
+			AutomatonOptions{Output: io.Discard},
 			zero,
 			"cannot continue calucations, missing transition for state qState and symbol symbol1",
 		},
@@ -201,7 +201,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			0,
-			AutomataOptions{Output: io.Discard},
+			AutomatonOptions{Output: io.Discard},
 			zero,
 			"cannot continue calucations, turing machine went out of tape",
 		},
@@ -226,7 +226,7 @@ func TestRun(t *testing.T) {
 				TapeIt: 0,
 			},
 			500,
-			AutomataOptions{Output: io.Discard},
+			AutomatonOptions{Output: io.Discard},
 			zero,
 			"timeout reached",
 		},
@@ -275,7 +275,7 @@ func TestRunWithIncludedCalculations(t *testing.T) {
 		TapeIt: 0,
 	}
 	sb := &strings.Builder{}
-	opts := AutomataOptions{
+	opts := AutomatonOptions{
 		Output:              sb,
 		IncludeCalculations: true,
 	}
@@ -332,7 +332,7 @@ func TestRunWithCalculationsOutputToFile(t *testing.T) {
 		},
 		TapeIt: 0,
 	}
-	opts := AutomataOptions{
+	opts := AutomatonOptions{
 		Output:              output,
 		IncludeCalculations: true,
 	}

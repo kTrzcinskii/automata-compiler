@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"automata-compiler/pkg/automata"
+	"automata-compiler/pkg/automaton"
 	"automata-compiler/pkg/compiler"
 	"automata-compiler/pkg/lexer"
 	"context"
@@ -16,10 +16,10 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "automata-compiler PAHT_TO_INPUT_FILE",
-	Short: "automata-compiler is a tool for simulating automatas",
-	Long: `The automata-compiler is a CLI application for compiling and running automatas code.
+	Short: "automata-compiler is a tool for simulating automata",
+	Long: `The automata-compiler is a CLI application for compiling and running automata code.
 It currenlty only supports Turing Machines, but there should be more type of
-automatas available in the future.`,
+automata available in the future.`,
 	RunE: runRootCmd,
 	Args: cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 }
@@ -46,9 +46,9 @@ var (
 
 func init() {
 	// Here you will define your flags and configuration settings.
-	rootCmd.Flags().Uint32P(timeoutFlag.name, timeoutFlag.short, 3000, "Timeout in miliseconds after which program will stop any remaining calculations. It's useful as many automatas can enter infinite loop for some input values. Set this value to 0 if you don't want any timeout.")
+	rootCmd.Flags().Uint32P(timeoutFlag.name, timeoutFlag.short, 3000, "Timeout in miliseconds after which program will stop any remaining calculations. It's useful as many automata can enter infinite loop for some input values. Set this value to 0 if you don't want any timeout.")
 	rootCmd.Flags().StringP(output.name, output.short, "", "Use this flag to specify filepath where output should be placed. If you want to use `stdout` leave this option empty.")
-	rootCmd.Flags().BoolP(includeCalculations.name, includeCalculations.short, false, "If set to true all calculations done by automata will be written to output.")
+	rootCmd.Flags().BoolP(includeCalculations.name, includeCalculations.short, false, "If set to true all calculations done by automaton will be written to output.")
 }
 
 func runRootCmd(cmd *cobra.Command, args []string) error {
@@ -101,8 +101,8 @@ func createCmdContext(cmd *cobra.Command) (context.Context, context.CancelFunc, 
 	return context.Background(), emptyFun, nil
 }
 
-func automataOptions(cmd *cobra.Command) (automata.AutomataOptions, func(), error) {
-	opts := automata.AutomataOptions{}
+func automataOptions(cmd *cobra.Command) (automaton.AutomatonOptions, func(), error) {
+	opts := automaton.AutomatonOptions{}
 	cleanupFunc := func() {}
 	// output
 	output, err := cmd.Flags().GetString(output.name)

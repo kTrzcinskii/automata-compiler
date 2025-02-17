@@ -1,25 +1,25 @@
-package automata
+package automaton
 
 import (
 	"context"
 	"io"
 )
 
-type AutomataOptions struct {
+type AutomatonOptions struct {
 	Output              io.Writer
 	IncludeCalculations bool
 }
 
-type Automata interface {
-	Run(ctx context.Context, opts AutomataOptions) (AutomataResult, error)
-	CurrentCalculationsState() AutomataCurrentCalculationsState
+type Automaton interface {
+	Run(ctx context.Context, opts AutomatonOptions) (AutomatonResult, error)
+	CurrentCalculationsState() AutomatonCurrentCalculationsState
 }
 
-type AutomataCurrentCalculationsState interface {
+type AutomatonCurrentCalculationsState interface {
 	SaveState(w io.Writer) error
 }
 
-type AutomataResult interface {
+type AutomatonResult interface {
 	SaveResult(w io.Writer) error
 }
 

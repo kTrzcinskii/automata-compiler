@@ -1,7 +1,7 @@
 package compiler
 
 import (
-	"automata-compiler/pkg/automata"
+	"automata-compiler/pkg/automaton"
 	"automata-compiler/pkg/lexer"
 	"slices"
 	"testing"
@@ -47,7 +47,7 @@ func TestCompile(t *testing.T) {
 	data := []struct {
 		name           string
 		tokens         []lexer.Token
-		expected       *automata.TuringMachine
+		expected       *automaton.TuringMachine
 		expectedErrMsg string
 	}{
 		{
@@ -110,23 +110,23 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
 				{Type: lexer.EOFToken, Value: "", Line: 7},
 			},
-			&automata.TuringMachine{
-				States: map[string]automata.State{
+			&automaton.TuringMachine{
+				States: map[string]automaton.State{
 					"qState":  {Name: "qState"},
 					"qState2": {Name: "qState2", Accepting: true},
 					"qState3": {Name: "qState3", Accepting: true},
 					"qState4": {Name: "qState4"},
 				},
 				CurrentState: "qState",
-				Symbols: map[string]automata.Symbol{
-					automata.BlankSymbol.Name: automata.BlankSymbol,
-					"symbol1":                 {Name: "symbol1"},
-					"symbol2":                 {Name: "symbol2"},
-					"symbol3":                 {Name: "symbol3"},
+				Symbols: map[string]automaton.Symbol{
+					automaton.BlankSymbol.Name: automaton.BlankSymbol,
+					"symbol1":                  {Name: "symbol1"},
+					"symbol2":                  {Name: "symbol2"},
+					"symbol3":                  {Name: "symbol3"},
 				},
-				Transitions: map[automata.TMTransitionKey]automata.TMTransitionValue{
-					{StateName: "qState", SymbolName: "symbol1"}:  {StateName: "qState2", SymbolName: "symbol2", Move: automata.TapeMoveLeft},
-					{StateName: "qState3", SymbolName: "symbol3"}: {StateName: "qState", SymbolName: "symbol3", Move: automata.TapeMoveRight},
+				Transitions: map[automaton.TMTransitionKey]automaton.TMTransitionValue{
+					{StateName: "qState", SymbolName: "symbol1"}:  {StateName: "qState2", SymbolName: "symbol2", Move: automaton.TapeMoveLeft},
+					{StateName: "qState3", SymbolName: "symbol3"}: {StateName: "qState", SymbolName: "symbol3", Move: automaton.TapeMoveRight},
 				},
 				Tape: []string{
 					"symbol2",
@@ -816,15 +816,15 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
 				{Type: lexer.EOFToken, Value: "", Line: 7},
 			},
-			&automata.TuringMachine{
-				States: map[string]automata.State{
+			&automaton.TuringMachine{
+				States: map[string]automaton.State{
 					"qState": {Name: "qState"},
 				},
 				CurrentState: "qState",
-				Symbols: map[string]automata.Symbol{
-					automata.BlankSymbol.Name: automata.BlankSymbol,
+				Symbols: map[string]automaton.Symbol{
+					automaton.BlankSymbol.Name: automaton.BlankSymbol,
 				},
-				Transitions: map[automata.TMTransitionKey]automata.TMTransitionValue{},
+				Transitions: map[automaton.TMTransitionKey]automaton.TMTransitionValue{},
 				Tape: []string{
 					"B",
 				},
@@ -864,16 +864,16 @@ func TestCompile(t *testing.T) {
 				{Type: lexer.SemicolonToken, Value: ";", Line: 7},
 				{Type: lexer.EOFToken, Value: "", Line: 7},
 			},
-			&automata.TuringMachine{
-				States: map[string]automata.State{
+			&automaton.TuringMachine{
+				States: map[string]automaton.State{
 					"qState": {Name: "qState"},
 				},
 				CurrentState: "qState",
-				Symbols: map[string]automata.Symbol{
-					automata.BlankSymbol.Name: automata.BlankSymbol,
+				Symbols: map[string]automaton.Symbol{
+					automaton.BlankSymbol.Name: automaton.BlankSymbol,
 				},
-				Transitions: map[automata.TMTransitionKey]automata.TMTransitionValue{
-					{StateName: "qState", SymbolName: automata.BlankSymbol.Name}: {StateName: "qState", SymbolName: automata.BlankSymbol.Name, Move: automata.TapeMoveLeft},
+				Transitions: map[automaton.TMTransitionKey]automaton.TMTransitionValue{
+					{StateName: "qState", SymbolName: automaton.BlankSymbol.Name}: {StateName: "qState", SymbolName: automaton.BlankSymbol.Name, Move: automaton.TapeMoveLeft},
 				},
 				Tape: []string{
 					"B",

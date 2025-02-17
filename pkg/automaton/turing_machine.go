@@ -1,4 +1,4 @@
-package automata
+package automaton
 
 import (
 	"context"
@@ -68,7 +68,7 @@ func (tmc TuringMachineCurrentCalculationsState) SaveState(w io.Writer) error {
 	return err
 }
 
-func (tm *TuringMachine) Run(ctx context.Context, opts AutomataOptions) (AutomataResult, error) {
+func (tm *TuringMachine) Run(ctx context.Context, opts AutomatonOptions) (AutomatonResult, error) {
 	err := validateOpts(opts)
 	if err != nil {
 		panic(err)
@@ -95,20 +95,20 @@ func (tm *TuringMachine) Run(ctx context.Context, opts AutomataOptions) (Automat
 	}
 }
 
-func validateOpts(opts AutomataOptions) error {
+func validateOpts(opts AutomatonOptions) error {
 	if opts.Output == nil {
 		return errors.New("field `Output` must be set")
 	}
 	return nil
 }
 
-func (tm TuringMachine) CurrentCalculationsState() AutomataCurrentCalculationsState {
+func (tm TuringMachine) CurrentCalculationsState() AutomatonCurrentCalculationsState {
 	state := tm.States[tm.CurrentState]
 	tape := tm.getTape()
 	return TuringMachineCurrentCalculationsState{State: state, Tape: tape, It: tm.TapeIt}
 }
 
-func (tm TuringMachine) FinalState() AutomataResult {
+func (tm TuringMachine) FinalState() AutomatonResult {
 	finalState := tm.States[tm.CurrentState]
 	finalTape := removeUnnecessaryBlanks(tm.getTape())
 	return TuringMachineResult{FinalState: finalState, FinalTape: finalTape}

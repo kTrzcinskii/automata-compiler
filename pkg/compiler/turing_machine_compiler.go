@@ -1,7 +1,7 @@
 package compiler
 
 import (
-	"automata-compiler/pkg/automata"
+	"automata-compiler/pkg/automaton"
 	"automata-compiler/pkg/lexer"
 	"errors"
 	"fmt"
@@ -13,7 +13,7 @@ type TuringMachineCompiler struct {
 	it     int
 }
 
-func (tm *TuringMachineCompiler) Compile() (automata.Automata, error) {
+func (tm *TuringMachineCompiler) Compile() (automaton.Automaton, error) {
 	states, err := tm.processStates()
 	if err != nil {
 		return nil, tm.addLinePrefixForErrPrevToken(err)
@@ -44,7 +44,7 @@ func (tm *TuringMachineCompiler) Compile() (automata.Automata, error) {
 		// so we don't include line here
 		return nil, err
 	}
-	return &automata.TuringMachine{States: states, CurrentState: initialState, Symbols: symbols, Transitions: tf, Tape: initialTape, TapeIt: 0}, nil
+	return &automaton.TuringMachine{States: states, CurrentState: initialState, Symbols: symbols, Transitions: tf, Tape: initialTape, TapeIt: 0}, nil
 }
 
 func NewTuringMachineCompiler(tokens []lexer.Token) *TuringMachineCompiler {
@@ -110,8 +110,8 @@ func (tm TuringMachineCompiler) addLinePrefixForErrPrevToken(err error) error {
 	return addLinePrefixForErr(err, tm.prevTokenLine())
 }
 
-func (tm *TuringMachineCompiler) processStates() (map[string]automata.State, error) {
-	states := make(map[string]automata.State)
+func (tm *TuringMachineCompiler) processStates() (map[string]automaton.State, error) {
+	states := make(map[string]automaton.State)
 	for !tm.isAtEnd() {
 		t := tm.advance()
 		switch t.Type {
@@ -125,7 +125,7 @@ func (tm *TuringMachineCompiler) processStates() (map[string]automata.State, err
 			if _, ok := states[name]; ok {
 				return nil, fmt.Errorf("state %s already declared, each state must have unique name", name)
 			}
-			states[name] = automata.State{Name: name, Accepting: false}
+			states[name] = automaton.State{Name: name, Accepting: false}
 		default:
 			return nil, fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.StateToken.String(), lexer.SemicolonToken.String(), t.Type.String())
 		}
@@ -133,7 +133,7 @@ func (tm *TuringMachineCompiler) processStates() (map[string]automata.State, err
 	return nil, errors.New("missing ';' at the end of states section")
 }
 
-func (tm *TuringMachineCompiler) processInitialState(states map[string]automata.State) (string, error) {
+func (tm *TuringMachineCompiler) processInitialState(states map[string]automaton.State) (string, error) {
 	initialState, err := tm.consumeTokenWithType("missing initial state section", lexer.StateToken)
 	if err != nil {
 		return "", err
@@ -147,7 +147,7 @@ func (tm *TuringMachineCompiler) processInitialState(states map[string]automata.
 	return initialState.Value, nil
 }
 
-func (tm *TuringMachineCompiler) processAcceptingStates(states map[string]automata.State) error {
+func (tm *TuringMachineCompiler) processAcceptingStates(states map[string]automaton.State) error {
 	for !tm.isAtEnd() {
 		t := tm.advance()
 		switch t.Type {
@@ -158,7 +158,7 @@ func (tm *TuringMachineCompiler) processAcceptingStates(states map[string]automa
 			if _, ok := states[name]; !ok {
 				return fmt.Errorf("state %s not found, any accepting state must be defined in state list", name)
 			}
-			states[name] = automata.State{Name: name, Accepting: true}
+			states[name] = automaton.State{Name: name, Accepting: true}
 		default:
 			return fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.StateToken.String(), lexer.SemicolonToken.String(), t.Type.String())
 		}
@@ -166,9 +166,9 @@ func (tm *TuringMachineCompiler) processAcceptingStates(states map[string]automa
 	return errors.New("missing ';' at the end of accepting states section")
 }
 
-func (tm *TuringMachineCompiler) processSymbols() (map[string]automata.Symbol, error) {
-	symbols := make(map[string]automata.Symbol)
-	symbols[automata.BlankSymbol.Name] = automata.BlankSymbol
+func (tm *TuringMachineCompiler) processSymbols() (map[string]automaton.Symbol, error) {
+	symbols := make(map[string]automaton.Symbol)
+	symbols[automaton.BlankSymbol.Name] = automaton.BlankSymbol
 	for !tm.isAtEnd() {
 		t := tm.advance()
 		switch t.Type {
@@ -179,7 +179,7 @@ func (tm *TuringMachineCompiler) processSymbols() (map[string]automata.Symbol, e
 			if _, ok := symbols[name]; ok {
 				return nil, fmt.Errorf("symbol %s already declared, each symbol must have unique name", name)
 			}
-			symbols[name] = automata.Symbol{Name: t.Value}
+			symbols[name] = automaton.Symbol{Name: t.Value}
 		default:
 			return nil, fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.SymbolToken.String(), lexer.SemicolonToken.String(), t.Type.String())
 		}
@@ -187,8 +187,8 @@ func (tm *TuringMachineCompiler) processSymbols() (map[string]automata.Symbol, e
 	return nil, errors.New("missing ';' at the end of symbols section")
 }
 
-func (tm *TuringMachineCompiler) processTransitions(states map[string]automata.State, symbols map[string]automata.Symbol) (automata.TransitionFunction, error) {
-	tf := make(automata.TransitionFunction)
+func (tm *TuringMachineCompiler) processTransitions(states map[string]automaton.State, symbols map[string]automaton.Symbol) (automaton.TransitionFunction, error) {
+	tf := make(automaton.TransitionFunction)
 	for !tm.isAtEnd() {
 		t := tm.advance()
 		switch t.Type {
@@ -206,7 +206,7 @@ func (tm *TuringMachineCompiler) processTransitions(states map[string]automata.S
 	return nil, errors.New("missing ';' at the end of transitions section")
 }
 
-func (tm *TuringMachineCompiler) processSingleTransition(states map[string]automata.State, symbols map[string]automata.Symbol, tf automata.TransitionFunction) error {
+func (tm *TuringMachineCompiler) processSingleTransition(states map[string]automaton.State, symbols map[string]automaton.Symbol, tf automaton.TransitionFunction) error {
 	// Each transition is as follows:
 	// (state, symbol) > (state, symbol, movement)
 	// At this point '(' has already been processed
@@ -226,8 +226,8 @@ func (tm *TuringMachineCompiler) processSingleTransition(states map[string]autom
 	return nil
 }
 
-func (tm *TuringMachineCompiler) processTransitionLeftSide(states map[string]automata.State, symbols map[string]automata.Symbol, atEndErrMsg string) (automata.TMTransitionKey, error) {
-	var zero automata.TMTransitionKey
+func (tm *TuringMachineCompiler) processTransitionLeftSide(states map[string]automaton.State, symbols map[string]automaton.Symbol, atEndErrMsg string) (automaton.TMTransitionKey, error) {
+	var zero automaton.TMTransitionKey
 	state, err := tm.consumeTokenWithType(atEndErrMsg, lexer.StateToken)
 	if err != nil {
 		return zero, err
@@ -248,11 +248,11 @@ func (tm *TuringMachineCompiler) processTransitionLeftSide(states map[string]aut
 	if _, err := tm.consumeTokenWithType(atEndErrMsg, lexer.RightParenToken); err != nil {
 		return zero, err
 	}
-	return automata.TMTransitionKey{StateName: state.Value, SymbolName: symbol.Value}, nil
+	return automaton.TMTransitionKey{StateName: state.Value, SymbolName: symbol.Value}, nil
 }
 
-func (tm *TuringMachineCompiler) processTransitionRightSide(states map[string]automata.State, symbols map[string]automata.Symbol, atEndErrMsg string) (automata.TMTransitionValue, error) {
-	var zero automata.TMTransitionValue
+func (tm *TuringMachineCompiler) processTransitionRightSide(states map[string]automaton.State, symbols map[string]automaton.Symbol, atEndErrMsg string) (automaton.TMTransitionValue, error) {
+	var zero automaton.TMTransitionValue
 	if _, err := tm.consumeTokenWithType(atEndErrMsg, lexer.LeftParenToken); err != nil {
 		return zero, err
 	}
@@ -283,21 +283,21 @@ func (tm *TuringMachineCompiler) processTransitionRightSide(states map[string]au
 	if _, err := tm.consumeTokenWithType(atEndErrMsg, lexer.RightParenToken); err != nil {
 		return zero, err
 	}
-	moveValue := automata.TapeMoveLeft
+	moveValue := automaton.TapeMoveLeft
 	if move.Type == lexer.MoveRightToken {
-		moveValue = automata.TapeMoveRight
+		moveValue = automaton.TapeMoveRight
 	}
-	return automata.TMTransitionValue{StateName: state.Value, SymbolName: symbol.Value, Move: moveValue}, nil
+	return automaton.TMTransitionValue{StateName: state.Value, SymbolName: symbol.Value, Move: moveValue}, nil
 }
 
-func (tm *TuringMachineCompiler) processTape(symbols map[string]automata.Symbol) ([]string, error) {
+func (tm *TuringMachineCompiler) processTape(symbols map[string]automaton.Symbol) ([]string, error) {
 	tape := make([]string, 0)
 	for !tm.isAtEnd() {
 		t := tm.advance()
 		switch t.Type {
 		case lexer.SemicolonToken:
 			if len(tape) == 0 {
-				tape = append(tape, automata.BlankSymbol.Name)
+				tape = append(tape, automaton.BlankSymbol.Name)
 			}
 			return tape, nil
 		case lexer.SymbolToken:
