@@ -1,3 +1,4 @@
+# simple program, we do one transition and end up in accepting state "qOne"
 qZero qOne;
 qZero;
 qOne;

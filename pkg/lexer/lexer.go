@@ -25,6 +25,7 @@ type Lexer struct {
 func (l *Lexer) ScanTokens() ([]Token, error) {
 	for {
 		l.skipWhitespaces()
+		l.skipComments()
 		if l.isAtEnd() {
 			break
 		}
@@ -135,5 +136,28 @@ func (l *Lexer) skipWhitespaces() {
 			l.line++
 		}
 		l.advance()
+	}
+}
+
+func (l *Lexer) skipComments() {
+	for {
+		c := l.peek()
+		if c == '#' {
+			l.skipLine()
+			l.skipWhitespaces()
+		} else {
+			break
+		}
+	}
+}
+
+// skipLine calls advance until new line is reached
+func (l *Lexer) skipLine() {
+	for {
+		c := l.advance()
+		if c == '\n' {
+			l.line++
+			break
+		}
 	}
 }
