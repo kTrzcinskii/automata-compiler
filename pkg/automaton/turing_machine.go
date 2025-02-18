@@ -19,7 +19,7 @@ type TMTransitionValue struct {
 	Move       TapeMoveType
 }
 
-type TransitionFunction map[TMTransitionKey]TMTransitionValue
+type TMTransitionFunction map[TMTransitionKey]TMTransitionValue
 
 type TuringMachine struct {
 	States       map[string]State
@@ -27,7 +27,7 @@ type TuringMachine struct {
 	CurrentState string
 	Tape         []string
 	TapeIt       int
-	Transitions  TransitionFunction
+	Transitions  TMTransitionFunction
 }
 
 type TuringMachineResult struct {

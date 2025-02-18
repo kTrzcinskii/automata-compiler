@@ -187,8 +187,8 @@ func (tm *TuringMachineCompiler) processSymbols() (map[string]automaton.Symbol, 
 	return nil, errors.New("missing ';' at the end of symbols section")
 }
 
-func (tm *TuringMachineCompiler) processTransitions(states map[string]automaton.State, symbols map[string]automaton.Symbol) (automaton.TransitionFunction, error) {
-	tf := make(automaton.TransitionFunction)
+func (tm *TuringMachineCompiler) processTransitions(states map[string]automaton.State, symbols map[string]automaton.Symbol) (automaton.TMTransitionFunction, error) {
+	tf := make(automaton.TMTransitionFunction)
 	for !tm.isAtEnd() {
 		t := tm.advance()
 		switch t.Type {
@@ -206,7 +206,7 @@ func (tm *TuringMachineCompiler) processTransitions(states map[string]automaton.
 	return nil, errors.New("missing ';' at the end of transitions section")
 }
 
-func (tm *TuringMachineCompiler) processSingleTransition(states map[string]automaton.State, symbols map[string]automaton.Symbol, tf automaton.TransitionFunction) error {
+func (tm *TuringMachineCompiler) processSingleTransition(states map[string]automaton.State, symbols map[string]automaton.Symbol, tf automaton.TMTransitionFunction) error {
 	// Each transition is as follows:
 	// (state, symbol) > (state, symbol, movement)
 	// At this point '(' has already been processed
