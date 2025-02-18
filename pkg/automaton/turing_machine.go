@@ -80,7 +80,7 @@ func (tm *TuringMachine) Run(ctx context.Context, opts AutomatonOptions) (Automa
 			return zero, errors.New("timeout reached")
 		default:
 			if opts.IncludeCalculations {
-				err := tm.writeCurrentState(opts.Output)
+				err := writeCurrentState(tm, opts.Output)
 				if err != nil {
 					return zero, err
 				}
@@ -158,10 +158,4 @@ func (tm *TuringMachine) makeTransition() error {
 		}
 	}
 	return nil
-}
-
-func (tm TuringMachine) writeCurrentState(w io.Writer) error {
-	cs := tm.CurrentCalculationsState()
-	err := cs.SaveState(w)
-	return err
 }

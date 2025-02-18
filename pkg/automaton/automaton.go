@@ -6,6 +6,26 @@ import (
 	"io"
 )
 
+type State struct {
+	Name      string
+	Accepting bool
+}
+
+type Symbol struct {
+	Name string
+	// TODO: I think we need more fields here (may be in different kinds of automata?)
+}
+
+var BlankSymbol = Symbol{Name: "B"}
+
+type TapeMoveType int
+
+const (
+	_ TapeMoveType = iota
+	TapeMoveLeft
+	TapeMoveRight
+)
+
 type AutomatonOptions struct {
 	Output              io.Writer
 	IncludeCalculations bool
@@ -31,22 +51,8 @@ type AutomatonResult interface {
 	SaveResult(w io.Writer) error
 }
 
-type State struct {
-	Name      string
-	Accepting bool
+func writeCurrentState(a Automaton, w io.Writer) error {
+	cs := a.CurrentCalculationsState()
+	err := cs.SaveState(w)
+	return err
 }
-
-type Symbol struct {
-	Name string
-	// TODO: I think we need more fields here (may be in different kinds of automata?)
-}
-
-var BlankSymbol = Symbol{Name: "B"}
-
-type TapeMoveType int
-
-const (
-	_ TapeMoveType = iota
-	TapeMoveLeft
-	TapeMoveRight
-)
