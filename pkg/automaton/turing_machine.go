@@ -63,14 +63,14 @@ func (tm *TuringMachine) makeMove() error {
 	}
 	val, ok := tm.Transitions[key]
 	if !ok {
-		return fmt.Errorf("cannot continue calucations, missing transition for state %s and symbol %s", key.StateName, key.SymbolName)
+		return fmt.Errorf("cannot continue calculations, missing transition for state %s and symbol %s", key.StateName, key.SymbolName)
 	}
 	tm.Tape[tm.TapeIt] = val.SymbolName
 	tm.CurrentState = val.StateName
 	if val.Move == TapeMoveLeft {
 		tm.TapeIt--
 		if tm.TapeIt < 0 {
-			return errors.New("cannot continue calucations, turing machine went out of tape")
+			return errors.New("cannot continue calculations, turing machine went out of tape")
 		}
 	} else {
 		tm.TapeIt++

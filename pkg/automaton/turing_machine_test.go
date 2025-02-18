@@ -179,7 +179,7 @@ func TestRun(t *testing.T) {
 			0,
 			AutomatonOptions{Output: io.Discard},
 			zero,
-			"cannot continue calucations, missing transition for state qState and symbol symbol1",
+			"cannot continue calculations, missing transition for state qState and symbol symbol1",
 		},
 		{
 			"go out of tape",
@@ -203,7 +203,7 @@ func TestRun(t *testing.T) {
 			0,
 			AutomatonOptions{Output: io.Discard},
 			zero,
-			"cannot continue calucations, turing machine went out of tape",
+			"cannot continue calculations, turing machine went out of tape",
 		},
 		{
 			"infinite loop with timeout",
