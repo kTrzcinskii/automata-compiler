@@ -43,7 +43,7 @@ func TestNewTuringMachineCompiler(t *testing.T) {
 	}
 }
 
-func TestCompile(t *testing.T) {
+func TestCompileTM(t *testing.T) {
 	data := []struct {
 		name           string
 		tokens         []lexer.Token

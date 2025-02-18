@@ -11,50 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestSaveResult(t *testing.T) {
-	tmr := TuringMachineResult{
-		FinalState: State{
-			Name:      "qState",
-			Accepting: true,
-		},
-		FinalTape: []Symbol{
-			{Name: "s1"},
-			{Name: "s2"},
-			{Name: BlankSymbol.Name},
-		},
-	}
-	var result strings.Builder
-	tmr.SaveResult(&result)
-	expected := "final state: qState, tape: s1|s2|B\n"
-	if result.String() != expected {
-		t.Errorf("invalid result string, expected:\n%s, got:\n%s", expected, result.String())
-	}
-}
-
-func TestSaveState(t *testing.T) {
-	tmc := TuringMachineCurrentCalculationsState{
-		State: State{
-			Name: "qState",
-		},
-		Tape: []Symbol{
-			{Name: "s1"},
-			{Name: "s2"},
-			{Name: BlankSymbol.Name},
-		},
-		It: 1,
-	}
-	var result strings.Builder
-	tmc.SaveState(&result)
-	expected := "current state: qState, tape: s1|s2|B\n"
-	id := strings.Index(expected, "s2")
-	spaces := strings.Repeat(" ", id)
-	expected += spaces + "^\n"
-	if result.String() != expected {
-		t.Errorf("invalid result string, expected:\n%s, got:\n%s", expected, result.String())
-	}
-}
-
-func TestRun(t *testing.T) {
+func TestRunTM(t *testing.T) {
 	var zero AutomatonResult
 	data := []struct {
 		name           string
@@ -256,7 +213,7 @@ func TestRun(t *testing.T) {
 	}
 }
 
-func TestRunWithIncludedCalculations(t *testing.T) {
+func TestRunWithIncludedCalculationsTM(t *testing.T) {
 	tm := &TuringMachine{
 		States: map[string]State{
 			"qState":  {Name: "qState"},
@@ -309,7 +266,7 @@ func TestRunWithIncludedCalculations(t *testing.T) {
 	}
 }
 
-func TestRunWithCalculationsOutputToFile(t *testing.T) {
+func TestRunWithCalculationsOutputToFileTM(t *testing.T) {
 	output, err := os.CreateTemp(t.TempDir(), "temp-output")
 	if err != nil {
 		t.Fatal(err)
@@ -362,5 +319,48 @@ func TestRunWithCalculationsOutputToFile(t *testing.T) {
 	outputContent := string(b)
 	if outputContent != expectedFileContent {
 		t.Errorf("invalid file content, expected:\n%s, got:\n%s", expectedFileContent, outputContent)
+	}
+}
+
+func TestSaveStateTM(t *testing.T) {
+	tmc := TuringMachineCurrentCalculationsState{
+		State: State{
+			Name: "qState",
+		},
+		Tape: []Symbol{
+			{Name: "s1"},
+			{Name: "s2"},
+			{Name: BlankSymbol.Name},
+		},
+		It: 1,
+	}
+	var result strings.Builder
+	tmc.SaveState(&result)
+	expected := "current state: qState, tape: s1|s2|B\n"
+	id := strings.Index(expected, "s2")
+	spaces := strings.Repeat(" ", id)
+	expected += spaces + "^\n"
+	if result.String() != expected {
+		t.Errorf("invalid result string, expected:\n%s, got:\n%s", expected, result.String())
+	}
+}
+
+func TestSaveResultTM(t *testing.T) {
+	tmr := TuringMachineResult{
+		FinalState: State{
+			Name:      "qState",
+			Accepting: true,
+		},
+		FinalTape: []Symbol{
+			{Name: "s1"},
+			{Name: "s2"},
+			{Name: BlankSymbol.Name},
+		},
+	}
+	var result strings.Builder
+	tmr.SaveResult(&result)
+	expected := "final state: qState, tape: s1|s2|B\n"
+	if result.String() != expected {
+		t.Errorf("invalid result string, expected:\n%s, got:\n%s", expected, result.String())
 	}
 }
