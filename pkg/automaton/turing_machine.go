@@ -86,7 +86,7 @@ func (tm *TuringMachine) Run(ctx context.Context, opts AutomatonOptions) (Automa
 				}
 			}
 			if tm.isInAcceptingState() {
-				return tm.FinalState(), nil
+				return tm.finalState(), nil
 			}
 			if err := tm.makeTransition(); err != nil {
 				return zero, err
@@ -101,7 +101,7 @@ func (tm TuringMachine) CurrentCalculationsState() AutomatonCurrentCalculationsS
 	return TuringMachineCurrentCalculationsState{State: state, Tape: tape, It: tm.TapeIt}
 }
 
-func (tm TuringMachine) FinalState() AutomatonResult {
+func (tm TuringMachine) finalState() AutomatonResult {
 	finalState := tm.States[tm.CurrentState]
 	finalTape := removeUnnecessaryBlanks(tm.getTape())
 	return TuringMachineResult{FinalState: finalState, FinalTape: finalTape}
