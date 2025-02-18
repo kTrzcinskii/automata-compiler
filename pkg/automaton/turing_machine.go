@@ -69,7 +69,7 @@ func (tmc TuringMachineCurrentCalculationsState) SaveState(w io.Writer) error {
 }
 
 func (tm *TuringMachine) Run(ctx context.Context, opts AutomatonOptions) (AutomatonResult, error) {
-	err := validateOpts(opts)
+	err := opts.validate()
 	if err != nil {
 		panic(err)
 	}
@@ -93,13 +93,6 @@ func (tm *TuringMachine) Run(ctx context.Context, opts AutomatonOptions) (Automa
 			}
 		}
 	}
-}
-
-func validateOpts(opts AutomatonOptions) error {
-	if opts.Output == nil {
-		return errors.New("field `Output` must be set")
-	}
-	return nil
 }
 
 func (tm TuringMachine) CurrentCalculationsState() AutomatonCurrentCalculationsState {

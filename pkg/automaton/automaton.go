@@ -2,12 +2,20 @@ package automaton
 
 import (
 	"context"
+	"errors"
 	"io"
 )
 
 type AutomatonOptions struct {
 	Output              io.Writer
 	IncludeCalculations bool
+}
+
+func (opts AutomatonOptions) validate() error {
+	if opts.IncludeCalculations && opts.Output == nil {
+		return errors.New("field `Output` must be set when `IncludeCalculations` is enabled")
+	}
+	return nil
 }
 
 type Automaton interface {
