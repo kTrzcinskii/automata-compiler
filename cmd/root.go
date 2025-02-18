@@ -69,7 +69,7 @@ func runRootCmd(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Error during compiling stage: %s\n", err.Error())
 		return nil
 	}
-	opts, cleanupFunc, err := automataOptions(cmd)
+	opts, cleanupFunc, err := automatonOptions(cmd)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func runRootCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	defer cancelFunc()
-	result, err := tm.Run(ctx, opts)
+	result, err := automaton.Run(ctx, tm, opts)
 	if err != nil {
 		fmt.Printf("Error during running stage: %s\n", err.Error())
 		return nil
@@ -101,7 +101,7 @@ func createCmdContext(cmd *cobra.Command) (context.Context, context.CancelFunc, 
 	return context.Background(), emptyFun, nil
 }
 
-func automataOptions(cmd *cobra.Command) (automaton.AutomatonOptions, func(), error) {
+func automatonOptions(cmd *cobra.Command) (automaton.AutomatonOptions, func(), error) {
 	opts := automaton.AutomatonOptions{}
 	cleanupFunc := func() {}
 	// output

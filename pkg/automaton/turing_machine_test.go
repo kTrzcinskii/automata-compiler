@@ -55,13 +55,13 @@ func TestSaveState(t *testing.T) {
 }
 
 func TestRun(t *testing.T) {
-	var zero TuringMachineResult
+	var zero AutomatonResult
 	data := []struct {
 		name           string
 		tm             *TuringMachine
 		timeout        int
 		options        AutomatonOptions
-		expected       TuringMachineResult
+		expected       AutomatonResult
 		expectedErrMsg string
 	}{
 		{
@@ -241,7 +241,7 @@ func TestRun(t *testing.T) {
 				ctx = ctxWithT
 				defer cancelFunc()
 			}
-			result, err := d.tm.Run(ctx, d.options)
+			result, err := Run(ctx, d.tm, d.options)
 			if diff := cmp.Diff(d.expected, result); diff != "" {
 				t.Error(diff)
 			}
@@ -279,7 +279,7 @@ func TestRunWithIncludedCalculations(t *testing.T) {
 		Output:              sb,
 		IncludeCalculations: true,
 	}
-	result, err := tm.Run(context.Background(), opts)
+	result, err := Run(context.Background(), tm, opts)
 	expected := TuringMachineResult{
 		FinalState: State{Name: "qState2", Accepting: true},
 		FinalTape: []Symbol{
@@ -336,7 +336,7 @@ func TestRunWithCalculationsOutputToFile(t *testing.T) {
 		Output:              output,
 		IncludeCalculations: true,
 	}
-	_, err = tm.Run(context.Background(), opts)
+	_, err = Run(context.Background(), tm, opts)
 	expectedFileContent := "current state: qState, tape: B\n"
 	l := len(expectedFileContent)
 	expectedFileContent += strings.Repeat(" ", l-2) + "^\n"

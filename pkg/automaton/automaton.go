@@ -13,7 +13,6 @@ type State struct {
 
 type Symbol struct {
 	Name string
-	// TODO: I think we need more fields here (may be in different kinds of automata?)
 }
 
 var BlankSymbol = Symbol{Name: "B"}
@@ -26,21 +25,11 @@ const (
 	TapeMoveRight
 )
 
-type AutomatonOptions struct {
-	Output              io.Writer
-	IncludeCalculations bool
-}
-
-func (opts AutomatonOptions) validate() error {
-	if opts.IncludeCalculations && opts.Output == nil {
-		return errors.New("field `Output` must be set when `IncludeCalculations` is enabled")
-	}
-	return nil
-}
-
 type Automaton interface {
-	Run(ctx context.Context, opts AutomatonOptions) (AutomatonResult, error)
-	CurrentCalculationsState() AutomatonCurrentCalculationsState
+	currentCalculationsState() AutomatonCurrentCalculationsState
+	calculationsFinished() bool
+	result() AutomatonResult
+	makeMove() error
 }
 
 type AutomatonCurrentCalculationsState interface {
@@ -51,8 +40,47 @@ type AutomatonResult interface {
 	SaveResult(w io.Writer) error
 }
 
+func Run(ctx context.Context, a Automaton, opts AutomatonOptions) (AutomatonResult, error) {
+	err := opts.validate()
+	if err != nil {
+		panic(err)
+	}
+	var zero AutomatonResult
+	for {
+		select {
+		case <-ctx.Done():
+			return zero, errors.New("timeout reached")
+		default:
+			if opts.IncludeCalculations {
+				err := writeCurrentState(a, opts.Output)
+				if err != nil {
+					return zero, err
+				}
+			}
+			if a.calculationsFinished() {
+				return a.result(), nil
+			}
+			if err := a.makeMove(); err != nil {
+				return zero, err
+			}
+		}
+	}
+}
+
 func writeCurrentState(a Automaton, w io.Writer) error {
-	cs := a.CurrentCalculationsState()
+	cs := a.currentCalculationsState()
 	err := cs.SaveState(w)
 	return err
+}
+
+type AutomatonOptions struct {
+	Output              io.Writer
+	IncludeCalculations bool
+}
+
+func (opts AutomatonOptions) validate() error {
+	if opts.IncludeCalculations && opts.Output == nil {
+		return errors.New("field `Output` must be set when `IncludeCalculations` is enabled")
+	}
+	return nil
 }
