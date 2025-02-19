@@ -5,12 +5,14 @@ import (
 	"automata-compiler/pkg/lexer"
 	"errors"
 	"fmt"
-	"strings"
 )
 
 type TuringMachineCompiler struct {
-	tokens []lexer.Token
-	it     int
+	BaseCompiler
+}
+
+func NewTuringMachineCompiler(tokens []lexer.Token) *TuringMachineCompiler {
+	return &TuringMachineCompiler{BaseCompiler: newBaseCompiler(tokens)}
 }
 
 func (tm *TuringMachineCompiler) Compile() (automaton.Automaton, error) {
@@ -45,69 +47,6 @@ func (tm *TuringMachineCompiler) Compile() (automaton.Automaton, error) {
 		return nil, err
 	}
 	return &automaton.TuringMachine{States: states, CurrentState: initialState, Symbols: symbols, Transitions: tf, Tape: initialTape, TapeIt: 0}, nil
-}
-
-func NewTuringMachineCompiler(tokens []lexer.Token) *TuringMachineCompiler {
-	return &TuringMachineCompiler{tokens: tokens, it: 0}
-}
-
-func (tm TuringMachineCompiler) isAtEnd() bool {
-	return tm.it >= len(tm.tokens)
-}
-
-func (tm *TuringMachineCompiler) advance() lexer.Token {
-	if tm.isAtEnd() {
-		var t lexer.Token
-		return t
-	}
-	t := tm.tokens[tm.it]
-	tm.it++
-	return t
-}
-
-func checkTokenType(t lexer.Token, expected ...lexer.TokenType) error {
-	if expected == nil {
-		panic("no token type provided")
-	}
-	expectedStr := make([]string, 0, len(expected))
-	for _, v := range expected {
-		if t.Type == v {
-			return nil
-		}
-		expectedStr = append(expectedStr, v.String())
-	}
-	if len(expected) == 1 {
-		return fmt.Errorf("invalid token type, expected: %s, got: %s", expectedStr[0], t.Type.String())
-	}
-	all := strings.Join(expectedStr, ", ")
-	return fmt.Errorf("invalid token type, expected one of: %s, got: %s", all, t.Type.String())
-}
-
-func (tm *TuringMachineCompiler) consumeTokenWithType(atEndErrMsg string, expected ...lexer.TokenType) (lexer.Token, error) {
-	var zero lexer.Token
-	if tm.isAtEnd() {
-		return zero, errors.New(atEndErrMsg)
-	}
-	token := tm.advance()
-	if err := checkTokenType(token, expected...); err != nil {
-		return zero, err
-	}
-	return token, nil
-}
-
-func (tm TuringMachineCompiler) prevTokenLine() int {
-	if tm.it == 0 {
-		return 0
-	}
-	return tm.tokens[tm.it-1].Line
-}
-
-func addLinePrefixForErr(err error, line int) error {
-	return fmt.Errorf("[Line %d] %s", line, err.Error())
-}
-
-func (tm TuringMachineCompiler) addLinePrefixForErrPrevToken(err error) error {
-	return addLinePrefixForErr(err, tm.prevTokenLine())
 }
 
 func (tm *TuringMachineCompiler) processStates() (map[string]automaton.State, error) {
@@ -312,14 +251,4 @@ func (tm *TuringMachineCompiler) processTape(symbols map[string]automaton.Symbol
 		}
 	}
 	return nil, errors.New("missing ';' at the end of tape section")
-}
-
-func (tm *TuringMachineCompiler) checkForCorrectEndingSequnce() error {
-	if _, err := tm.consumeTokenWithType("missing EOF token at the end of source", lexer.EOFToken); err != nil {
-		return err
-	}
-	if !tm.isAtEnd() {
-		return errors.New("unexpected token after EOF token")
-	}
-	return nil
 }

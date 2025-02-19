@@ -32,8 +32,10 @@ func TestNewTuringMachineCompiler(t *testing.T) {
 	}
 	result := NewTuringMachineCompiler(tokens)
 	expected := TuringMachineCompiler{
-		tokens: tokens,
-		it:     0,
+		BaseCompiler: BaseCompiler{
+			tokens: tokens,
+			it:     0,
+		},
 	}
 	if !slices.Equal(expected.tokens, result.tokens) {
 		t.Error("invalid tokens, expected:", expected.tokens, " got:", result.tokens)
