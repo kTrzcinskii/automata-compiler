@@ -72,6 +72,83 @@ func (c *BaseCompiler) checkForCorrectEndingSequnce() error {
 	return nil
 }
 
+func (c *BaseCompiler) processStates() (map[string]automaton.State, error) {
+	states := make(map[string]automaton.State)
+	for !c.isAtEnd() {
+		t := c.advance()
+		switch t.Type {
+		case lexer.SemicolonToken:
+			if len(states) == 0 {
+				return nil, errors.New("there must be at least one state defined")
+			}
+			return states, nil
+		case lexer.StateToken:
+			name := t.Value
+			if _, ok := states[name]; ok {
+				return nil, fmt.Errorf("state %s already declared, each state must have unique name", name)
+			}
+			states[name] = automaton.State{Name: name, Accepting: false}
+		default:
+			return nil, fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.StateToken.String(), lexer.SemicolonToken.String(), t.Type.String())
+		}
+	}
+	return nil, errors.New("missing ';' at the end of states section")
+}
+
+func (c *BaseCompiler) processInitialState(states map[string]automaton.State) (string, error) {
+	initialState, err := c.consumeTokenWithType("missing initial state section", lexer.StateToken)
+	if err != nil {
+		return "", err
+	}
+	if _, ok := states[initialState.Value]; !ok {
+		return "", fmt.Errorf("invalid initial state, state %s was not declared in states list", initialState.Value)
+	}
+	if c.isAtEnd() || c.advance().Type != lexer.SemicolonToken {
+		return "", fmt.Errorf("missing ';' after initial state")
+	}
+	return initialState.Value, nil
+}
+
+func (c *BaseCompiler) processAcceptingStates(states map[string]automaton.State) error {
+	for !c.isAtEnd() {
+		t := c.advance()
+		switch t.Type {
+		case lexer.SemicolonToken:
+			return nil
+		case lexer.StateToken:
+			name := t.Value
+			if _, ok := states[name]; !ok {
+				return fmt.Errorf("state %s not found, any accepting state must be defined in state list", name)
+			}
+			states[name] = automaton.State{Name: name, Accepting: true}
+		default:
+			return fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.StateToken.String(), lexer.SemicolonToken.String(), t.Type.String())
+		}
+	}
+	return errors.New("missing ';' at the end of accepting states section")
+}
+
+func (c *BaseCompiler) processSymbols() (map[string]automaton.Symbol, error) {
+	symbols := make(map[string]automaton.Symbol)
+	symbols[automaton.BlankSymbol.Name] = automaton.BlankSymbol
+	for !c.isAtEnd() {
+		t := c.advance()
+		switch t.Type {
+		case lexer.SemicolonToken:
+			return symbols, nil
+		case lexer.SymbolToken:
+			name := t.Value
+			if _, ok := symbols[name]; ok {
+				return nil, fmt.Errorf("symbol %s already declared, each symbol must have unique name", name)
+			}
+			symbols[name] = automaton.Symbol{Name: t.Value}
+		default:
+			return nil, fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.SymbolToken.String(), lexer.SemicolonToken.String(), t.Type.String())
+		}
+	}
+	return nil, errors.New("missing ';' at the end of symbols section")
+}
+
 // addLinePrefixForErr modifies provided error message, adding prefix which contains line number
 func addLinePrefixForErr(err error, line int) error {
 	return fmt.Errorf("[Line %d] %s", line, err.Error())
