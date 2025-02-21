@@ -28,6 +28,7 @@ a1 a1 a3 a8 ...; [initial tape]
 
 #### Rules and Conventions
 - Each state must start with the letter `q`, followed by one or more alphanumeric characters.
+- Each symbol must constist of one or more alphanumeric characters.
 - `move` can be either:
   - `L` (left)
   - `R` (right)
@@ -40,3 +41,25 @@ a1 a1 a3 a8 ...; [initial tape]
 
 You can find example Turing Machine programs in the [examples/turing-machine](examples/turing-machine) directory.
 
+### Deterministic Finite Automaton
+
+#### Input Format
+
+```
+q0 q1 ... qn; [states]
+qs; [initial state]
+qf1 qf2 ... qfk; [accepting states]
+a1 a2 ... an; [symbols]
+
+(q, s) > (new_q)
+(q, s) > (new_q)
+(q, s) > (new_q)
+...;
+
+a1 a1 a3 a8 ...; [input]
+```
+
+#### Rules and Conventions
+- Each state must start with the letter `q`, followed by one or more alphanumeric characters.
+- Each symbol must constist of one or more alphanumeric characters.
+- Each section must be **terminated by a semicolon** (`;`).
