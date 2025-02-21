@@ -6,7 +6,7 @@ _Work in progress_
 
 ### Turing Machine (Standard Model)
 
-A Turing Machine uses a tape and a state to determine its next move. The model implemented in this application assumes that the tape is **one-way infinite**, meaning you can move indefinitely to the right. However, moving left beyond the starting position results in an error.
+A **Turing Machine** uses a tape and a state to determine its next move. The model implemented in this application assumes that the tape is **one-way infinite**, meaning you can move indefinitely to the right. However, moving left beyond the starting position results in an error.
 
 If no transition is defined for a given state and symbol, the program terminates with an error. The final tape output is trimmed of any trailing `B` (blank symbols) except for one. For example, if the final tape is `S1|S1|S2|B|B|B`, the program returns `S1|S1|S2|B`.
 
@@ -43,6 +43,10 @@ You can find example Turing Machine programs in the [examples/turing-machine](ex
 
 ### Deterministic Finite Automaton
 
+A **Deterministic Finite Automaton (DFA)** determines its next move based on its current state and the input symbol. At each step, the automaton transitions to a new state and reads the next input symbol. The computation ends once the entire input has been processed.
+
+If no transition is defined for a given state and symbol, the program terminates with an error.
+
 #### Input Format
 
 ```
@@ -63,3 +67,7 @@ a1 a1 a3 a8 ...; [input]
 - Each state must start with the letter `q`, followed by one or more alphanumeric characters.
 - Each symbol must constist of one or more alphanumeric characters.
 - Each section must be **terminated by a semicolon** (`;`).
+
+#### Examples
+
+You can find example DFA programs in the [examples/deterministinc-finite-automaton](examples/deterministinc-finite-automaton) directory.

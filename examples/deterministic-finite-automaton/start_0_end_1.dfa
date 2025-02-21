@@ -1,0 +1,40 @@
+# This DFA accepts input only if it starts with 0 and ends with 1
+# 01110 will not be accepted, 01011101 will be
+
+# States
+qStart # starting
+qP0 # last read was 0
+qP1 # last read was 1
+qR # rejecting state, once you enter it you stay in it
+;
+
+# Initial state
+qStart;
+
+# Accepting state
+qP1;
+
+# Symbols
+0 1;
+
+# Transitions
+
+# qStart
+(qStart, 0) > (qP0)
+(qStart, 1) > (qR)
+
+# qP0
+(qP0, 0) > (qP0)
+(qP0, 1) > (qP1)
+
+# qP1 
+(qP1, 0) > (qP0)
+(qP1, 1) > (qP1)
+
+# qR
+(qR, 0) > (qR)
+(qR, 1) > (qR)
+;
+
+# Input
+0 1 0 0 1 0 0 0 1 0 1 0 1 0 1 1 1 0 1 0 1 0 1 1;
