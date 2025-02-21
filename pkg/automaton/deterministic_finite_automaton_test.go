@@ -212,6 +212,70 @@ func TestRunDFA(t *testing.T) {
 			zero,
 			"cannot continue calculations, missing transition for state qOK and symbol P",
 		},
+		{
+			"long input",
+			&DeterministicFiniteAutomaton{
+				States: map[string]State{
+					"qA": {
+						Name:      "qA",
+						Accepting: false,
+					},
+					"qAcc": {
+						Name:      "qAcc",
+						Accepting: true,
+					},
+				},
+				Symbols: map[string]Symbol{
+					"A": {
+						Name: "A",
+					},
+					"B": {
+						Name: "B",
+					},
+				},
+				CurrentState: "qA",
+				Input: []string{
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"A",
+					"B",
+				},
+				InputIt: 0,
+				Transitions: map[DFATransitionKey]DFATransitionValue{
+					{
+						StateName:  "qA",
+						SymbolName: "A",
+					}: {
+						StateName: "qA",
+					},
+					{
+						StateName:  "qA",
+						SymbolName: "B",
+					}: {
+						StateName: "qAcc",
+					},
+				},
+			},
+			DeterministicFiniteAutomatonResult{
+				FinalState: State{
+					Name:      "qAcc",
+					Accepting: true,
+				},
+			},
+			"",
+		},
 	}
 	for _, d := range data {
 		t.Run(d.name, func(t *testing.T) {

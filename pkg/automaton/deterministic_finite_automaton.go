@@ -48,7 +48,7 @@ func (dfa DeterministicFiniteAutomaton) currentCalculationsState() AutomatonCurr
 }
 
 func (dfa DeterministicFiniteAutomaton) calculationsFinished() bool {
-	return dfa.InputIt == len(dfa.Symbols)
+	return dfa.InputIt == len(dfa.Input)
 }
 
 func (dfa DeterministicFiniteAutomaton) result() AutomatonResult {
