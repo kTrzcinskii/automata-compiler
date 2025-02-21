@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -15,13 +16,15 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "automata-compiler PAHT_TO_INPUT_FILE",
+	Use:   "automata-compiler AUTOMATON_TYPE PAHT_TO_INPUT_FILE",
 	Short: "automata-compiler is a tool for simulating automata",
 	Long: `The automata-compiler is a CLI application for compiling and running automata code.
-It currenlty only supports Turing Machines, but there should be more type of
-automata available in the future.`,
+It supports Deterministic Finite Automata and Turing Machines. 
+AUTOMATON_TYPE is one of the following
+- DFA (for Deterministic Finite Automaton)
+- TM (for Turing Machine)`,
 	RunE: runRootCmd,
-	Args: cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+	Args: cobra.MatchAll(cobra.ExactArgs(2), cobra.OnlyValidArgs),
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -52,53 +55,35 @@ func init() {
 }
 
 func runRootCmd(cmd *cobra.Command, args []string) error {
-	b, err := os.ReadFile(args[0])
+	// automaton type
+	aType := args[0]
+
+	// source
+	b, err := os.ReadFile(args[1])
 	if err != nil {
 		return err
 	}
 	source := string(b)
-	l := lexer.NewLexer(source)
-	tokens, err := l.ScanTokens()
-	if err != nil {
-		fmt.Printf("Error during lexing stage: %s\n", err.Error())
-		return nil
-	}
-	tmc := compiler.NewTuringMachineCompiler(tokens)
-	tm, err := tmc.Compile()
-	if err != nil {
-		fmt.Printf("Error during compiling stage: %s\n", err.Error())
-		return nil
-	}
+
+	// parse automaton options
 	opts, cleanupFunc, err := automatonOptions(cmd)
 	if err != nil {
 		return err
 	}
 	defer cleanupFunc()
-	ctx, cancelFunc, err := createCmdContext(cmd)
+
+	// parse timeout
+	timeout, err := cmd.Flags().GetUint32(timeoutFlag.name)
 	if err != nil {
 		return err
 	}
-	defer cancelFunc()
-	result, err := automaton.Run(ctx, tm, opts)
-	if err != nil {
-		fmt.Printf("Error during running stage: %s\n", err.Error())
-		return nil
-	}
-	result.SaveResult(opts.Output)
-	return nil
-}
 
-func createCmdContext(cmd *cobra.Command) (context.Context, context.CancelFunc, error) {
-	timeout, err := cmd.Flags().GetUint32(timeoutFlag.name)
+	// start processing
+	err = processAutomaton(aType, source, opts, timeout)
 	if err != nil {
-		return nil, nil, err
+		fmt.Printf("%s\n", err.Error())
 	}
-	if timeout > 0 {
-		ctx, fun := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(timeout))
-		return ctx, fun, nil
-	}
-	emptyFun := func() {}
-	return context.Background(), emptyFun, nil
+	return nil
 }
 
 func automatonOptions(cmd *cobra.Command) (automaton.AutomatonOptions, func(), error) {
@@ -132,4 +117,48 @@ func automatonOptions(cmd *cobra.Command) (automaton.AutomatonOptions, func(), e
 	}
 	opts.IncludeCalculations = ic
 	return opts, cleanupFunc, nil
+}
+
+func getCompiler(tokens []lexer.Token, aType string) (compiler.Compiler, error) {
+	switch strings.ToLower(aType) {
+	case "dfa":
+		return compiler.NewDeterministicFiniteAutomatonCompiler(tokens), nil
+	case "tm":
+		return compiler.NewTuringMachineCompiler(tokens), nil
+	default:
+		return nil, fmt.Errorf("unsupported automaton type: '%s'", aType)
+	}
+}
+
+func createContextWithTimeout(timeout uint32) (context.Context, context.CancelFunc) {
+	if timeout > 0 {
+		ctx, fun := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(timeout))
+		return ctx, fun
+	}
+	emptyFun := func() {}
+	return context.Background(), emptyFun
+}
+
+func processAutomaton(aType string, source string, opts automaton.AutomatonOptions, timeout uint32) error {
+	l := lexer.NewLexer(source)
+	tokens, err := l.ScanTokens()
+	if err != nil {
+		return fmt.Errorf("error during lexing stage: %s", err.Error())
+	}
+	c, err := getCompiler(tokens, aType)
+	if err != nil {
+		return err
+	}
+	a, err := c.Compile()
+	if err != nil {
+		return fmt.Errorf("error during compiling stage: %s", err.Error())
+	}
+	ctx, cancelFunc := createContextWithTimeout(timeout)
+	defer cancelFunc()
+	result, err := automaton.Run(ctx, a, opts)
+	if err != nil {
+		return fmt.Errorf("error during running stage: %s", err.Error())
+	}
+	result.SaveResult(opts.Output)
+	return nil
 }

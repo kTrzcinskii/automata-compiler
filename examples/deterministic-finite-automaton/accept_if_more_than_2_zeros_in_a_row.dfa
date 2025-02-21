@@ -1,0 +1,36 @@
+# This DFA accepts input if and only if there are at least 2 zeros in a row
+# so "1001" will be accepted and "1010" will not.
+# For simplicity we will work on binary alphabet
+
+# States
+q0 # 0 zeros in a row
+q1 # 1 zero in a row
+q2 # 2 zero in a row, our accepting state
+;
+
+# Initial state
+q0;
+
+# Accepting state
+q2;
+
+# Symbols
+0 1;
+
+# Transitions
+
+# q0
+(q0, 0) > (q1)
+(q0, 1) > (q0)
+
+# q1
+(q1, 0) > (q2)
+(q1, 1) > (q0)
+
+# q2
+(q2, 0) > (q2)
+(q2, 1) > (q2)
+;
+
+# Input
+0 1 0 1 0 1 1 1 1 1 0 1 0 0 1 0 1 0;
