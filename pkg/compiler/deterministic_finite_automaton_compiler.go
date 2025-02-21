@@ -140,24 +140,24 @@ func (dfa *DeterministicFiniteAutomatonCompiler) processTransitionRightSide(stat
 }
 
 func (dfa *DeterministicFiniteAutomatonCompiler) processInput(symbols map[string]automaton.Symbol) ([]string, error) {
-	tape := make([]string, 0)
+	input := make([]string, 0)
 	for !dfa.isAtEnd() {
 		t := dfa.advance()
 		switch t.Type {
 		case lexer.SemicolonToken:
-			if len(tape) == 0 {
-				tape = append(tape, automaton.BlankSymbol.Name)
+			if len(input) == 0 {
+				input = append(input, automaton.BlankSymbol.Name)
 			}
-			return tape, nil
+			return input, nil
 		case lexer.SymbolToken:
 			if _, ok := symbols[t.Value]; !ok {
-				return nil, fmt.Errorf("invalid symbol %s in initial tape, each symbol must be defined in symbols section", t.Value)
+				return nil, fmt.Errorf("invalid symbol %s in input, each symbol must be defined in symbols section", t.Value)
 			}
-			tape = append(tape, t.Value)
+			input = append(input, t.Value)
 		default:
 			return nil, fmt.Errorf("invalid token type, expected: %s or %s, got: %s", lexer.SemicolonToken.String(), lexer.SymbolToken.String(), t.Type.String())
 		}
 	}
-	return nil, errors.New("missing ';' at the end of tape section")
+	return nil, errors.New("missing ';' at the end of input section")
 
 }
