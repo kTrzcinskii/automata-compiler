@@ -28,7 +28,8 @@ func (dfa *DeterministicFiniteAutomatonCompiler) Compile() (automaton.Automaton,
 	if err != nil {
 		return nil, dfa.addLinePrefixForErrPrevToken(err)
 	}
-	symbols, err := dfa.processSymbols()
+	// DFA doesn't have any special symbol so we pass an empty map
+	symbols, err := dfa.processSymbols(make(map[string]automaton.Symbol))
 	if err != nil {
 		return nil, dfa.addLinePrefixForErrPrevToken(err)
 	}

@@ -128,9 +128,8 @@ func (c *BaseCompiler) processAcceptingStates(states map[string]automaton.State)
 	return errors.New("missing ';' at the end of accepting states section")
 }
 
-func (c *BaseCompiler) processSymbols() (map[string]automaton.Symbol, error) {
-	symbols := make(map[string]automaton.Symbol)
-	symbols[automaton.BlankSymbol.Name] = automaton.BlankSymbol
+// symbols are passed so if automaton uses some special symbols (e.g. blank symbol in tm, input end and stack start symbols in pa) it can add it to list of symbols provided by user
+func (c *BaseCompiler) processSymbols(symbols map[string]automaton.Symbol) (map[string]automaton.Symbol, error) {
 	for !c.isAtEnd() {
 		t := c.advance()
 		switch t.Type {

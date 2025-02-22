@@ -28,7 +28,8 @@ func (tm *TuringMachineCompiler) Compile() (automaton.Automaton, error) {
 	if err != nil {
 		return nil, tm.addLinePrefixForErrPrevToken(err)
 	}
-	symbols, err := tm.processSymbols()
+	specialSymbols := tm.getSpecialSymbols()
+	symbols, err := tm.processSymbols(specialSymbols)
 	if err != nil {
 		return nil, tm.addLinePrefixForErrPrevToken(err)
 	}
@@ -47,6 +48,12 @@ func (tm *TuringMachineCompiler) Compile() (automaton.Automaton, error) {
 		return nil, err
 	}
 	return &automaton.TuringMachine{States: states, CurrentState: initialState, Symbols: symbols, Transitions: tf, Tape: initialTape, TapeIt: 0}, nil
+}
+
+func (tm TuringMachineCompiler) getSpecialSymbols() map[string]automaton.Symbol {
+	symbols := make(map[string]automaton.Symbol)
+	symbols[automaton.BlankSymbol.Name] = automaton.BlankSymbol
+	return symbols
 }
 
 func (tm *TuringMachineCompiler) processTransitions(states map[string]automaton.State, symbols map[string]automaton.Symbol) (automaton.TMTransitionFunction, error) {

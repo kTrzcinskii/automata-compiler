@@ -109,10 +109,9 @@ func TestCompileDFA(t *testing.T) {
 				},
 				CurrentState: "qState",
 				Symbols: map[string]automaton.Symbol{
-					automaton.BlankSymbol.Name: automaton.BlankSymbol,
-					"symbol1":                  {Name: "symbol1"},
-					"symbol2":                  {Name: "symbol2"},
-					"symbol3":                  {Name: "symbol3"},
+					"symbol1": {Name: "symbol1"},
+					"symbol2": {Name: "symbol2"},
+					"symbol3": {Name: "symbol3"},
 				},
 				Transitions: map[automaton.DFATransitionKey]automaton.DFATransitionValue{
 					{StateName: "qState", SymbolName: "symbol1"}:  {StateName: "qState2"},
