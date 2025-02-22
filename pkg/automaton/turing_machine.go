@@ -7,6 +7,16 @@ import (
 	"strings"
 )
 
+var BlankSymbol = Symbol{Name: "B"}
+
+type TapeMoveType int
+
+const (
+	_ TapeMoveType = iota
+	TapeMoveLeft
+	TapeMoveRight
+)
+
 type TMTransitionKey struct {
 	StateName  string
 	SymbolName string

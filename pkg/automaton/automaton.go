@@ -15,16 +15,6 @@ type Symbol struct {
 	Name string
 }
 
-var BlankSymbol = Symbol{Name: "B"}
-
-type TapeMoveType int
-
-const (
-	_ TapeMoveType = iota
-	TapeMoveLeft
-	TapeMoveRight
-)
-
 type Automaton interface {
 	currentCalculationsState() AutomatonCurrentCalculationsState
 	calculationsFinished() bool
