@@ -79,6 +79,10 @@ func (l *Lexer) scanToken() (Token, error) {
 		return Token{Type: MoveRightToken, Value: c, Line: l.line}, nil
 	case "B":
 		return Token{Type: BlankSymbolToken, Value: c, Line: l.line}, nil
+	case "}":
+		return Token{Type: StackStartToken, Value: c, Line: l.line}, nil
+	case "{":
+		return Token{Type: InputEndToken, Value: c, Line: l.line}, nil
 	default:
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			symbol := l.readAlphanumeric()

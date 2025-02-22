@@ -121,6 +121,16 @@ func TestScanTokens(t *testing.T) {
 			"",
 		},
 		{
+			"input end and stack start (pa's tokens)",
+			"{}",
+			[]Token{
+				{Type: InputEndToken, Value: "{", Line: 1},
+				{Type: StackStartToken, Value: "}", Line: 1},
+				{Type: EOFToken, Value: "", Line: 1},
+			},
+			"",
+		},
+		{
 			"invalid token",
 			"|321321",
 			zeroTokens,
@@ -128,7 +138,7 @@ func TestScanTokens(t *testing.T) {
 		},
 		{
 			"all",
-			"qState\n;;,>>symbol1 symbol2\tBLRR,,((\n)",
+			"qState\n;;,>>symbol1 symbol2\tBLRR,,((\n{{})",
 			[]Token{
 				{Type: StateToken, Value: "qState", Line: 1},
 				{Type: SemicolonToken, Value: ";", Line: 2},
@@ -146,6 +156,9 @@ func TestScanTokens(t *testing.T) {
 				{Type: CommaToken, Value: ",", Line: 2},
 				{Type: LeftParenToken, Value: "(", Line: 2},
 				{Type: LeftParenToken, Value: "(", Line: 2},
+				{Type: InputEndToken, Value: "{", Line: 3},
+				{Type: InputEndToken, Value: "{", Line: 3},
+				{Type: StackStartToken, Value: "}", Line: 3},
 				{Type: RightParenToken, Value: ")", Line: 3},
 				{Type: EOFToken, Value: "", Line: 3},
 			},

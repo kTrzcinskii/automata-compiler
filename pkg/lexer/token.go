@@ -4,6 +4,7 @@ type TokenType int
 
 const (
 	_ TokenType = iota
+	// Used in all automata
 	CommaToken
 	ArrowToken
 	LeftParenToken
@@ -11,10 +12,16 @@ const (
 	SemicolonToken
 	StateToken
 	SymbolToken
+	EOFToken
+
+	// Used in TM
 	BlankSymbolToken
 	MoveLeftToken
 	MoveRightToken
-	EOFToken
+
+	// Used in PA
+	InputEndToken
+	StackStartToken
 )
 
 func (tt TokenType) String() string {
@@ -41,6 +48,10 @@ func (tt TokenType) String() string {
 		return "MoveRightToken"
 	case EOFToken:
 		return "EOFToken"
+	case InputEndToken:
+		return "InputEndToken"
+	case StackStartToken:
+		return "StackStartToken"
 	default:
 		return "Invalid Token Type"
 	}
