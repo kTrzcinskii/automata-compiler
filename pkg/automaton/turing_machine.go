@@ -122,7 +122,8 @@ func (tm TuringMachine) getTape() []Symbol {
 func (tmc TuringMachineCurrentCalculationsState) SaveState(w io.Writer) error {
 	firstLine := fmt.Sprintf("current state: %s, tape: ", tmc.State.Name)
 	fpLen := len(firstLine)
-	firstLine += tapeString(tmc.Tape) + "\n"
+	tape := symbolsToString(tmc.Tape)
+	firstLine += tape + "\n"
 	offset := 0
 	for i := 0; i < tmc.It; i++ {
 		offset += len(tmc.Tape[i].Name) + 1
@@ -134,14 +135,7 @@ func (tmc TuringMachineCurrentCalculationsState) SaveState(w io.Writer) error {
 }
 
 func (tmr TuringMachineResult) SaveResult(w io.Writer) error {
-	_, err := w.Write([]byte(fmt.Sprintf("final state: %s, tape: %s\n", tmr.FinalState.Name, tapeString(tmr.FinalTape))))
+	tape := symbolsToString(tmr.FinalTape)
+	_, err := w.Write([]byte(fmt.Sprintf("final state: %s, tape: %s\n", tmr.FinalState.Name, tape)))
 	return err
-}
-
-func tapeString(tape []Symbol) string {
-	tapeStr := make([]string, 0, len(tape))
-	for _, v := range tape {
-		tapeStr = append(tapeStr, v.Name)
-	}
-	return strings.Join(tapeStr, "|")
 }

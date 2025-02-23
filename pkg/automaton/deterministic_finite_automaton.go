@@ -3,7 +3,6 @@ package automaton
 import (
 	"fmt"
 	"io"
-	"strings"
 )
 
 type DFATransitionKey struct {
@@ -72,11 +71,8 @@ func (dfa *DeterministicFiniteAutomaton) makeMove() error {
 }
 
 func (dfa DeterministicFiniteAutomatonCurrentCalculationsState) SaveState(w io.Writer) error {
-	inputStr := make([]string, 0, len(dfa.InputLeft))
-	for _, v := range dfa.InputLeft {
-		inputStr = append(inputStr, v.Name)
-	}
-	_, err := w.Write([]byte(fmt.Sprintf("current state: %s, input left: %s\n", dfa.State.Name, strings.Join(inputStr, "|"))))
+	input := symbolsToString(dfa.InputLeft)
+	_, err := w.Write([]byte(fmt.Sprintf("current state: %s, input left: %s\n", dfa.State.Name, input)))
 	return err
 }
 

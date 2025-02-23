@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"strings"
 )
 
 type State struct {
@@ -73,4 +74,12 @@ func (opts AutomatonOptions) validate() error {
 		return errors.New("field `Output` must be set when `IncludeCalculations` is enabled")
 	}
 	return nil
+}
+
+func symbolsToString(symbols []Symbol) string {
+	symbolsStr := make([]string, 0, len(symbols))
+	for _, v := range symbols {
+		symbolsStr = append(symbolsStr, v.Name)
+	}
+	return strings.Join(symbolsStr, "|")
 }
