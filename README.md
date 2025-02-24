@@ -71,3 +71,29 @@ a1 a1 a3 a8 ...; [input]
 #### Examples
 
 You can find example DFA programs in the [examples/deterministinc-finite-automaton](examples/deterministinc-finite-automaton) directory.
+
+### Pushdown Atumaton
+
+#### Input Format
+
+```
+q0 q1 ... qn; [states]
+qs; [initial state]
+qf1 qf2 ... qfk; [accepting states]
+a1 a2 ... an; [symbols]
+
+(q, s_i, s_s) > (new_q, s_s1, s_s2, ...)
+(q, s_i, s_s) > (new_q, s_s1, s_s2, ...)
+(q, s_i, s_s) > (new_q, s_s1, s_s2, ...)
+...;
+
+a1 a1 a3 a8 ...; [input]
+```
+
+#### Rules and Conventions
+- `{` is a **reserved symbol** representing input end (user cannot use it in symbol declaration section, but should use it in transitions)
+- `}` is a **reserved symbol** representing stack start (user cannot use it in symbol declaration section, but should use it in transitions)
+- Each state must start with the letter `q`, followed by one or more alphanumeric characters.
+- Each symbol must constist of one or more alphanumeric characters.
+- Each section must be **terminated by a semicolon** (`;`).
+- In transitions section, `s_i` is symbol from input and `s_s` is symbol from stack. `s_s1`, `s_s2`, ...  are symbols that should be push on the stack (they will be pushed in the order they are provided, meaning that in this case `s_s2` will be closer to stack top than `s_s2`).

@@ -39,6 +39,15 @@ func (c *BaseCompiler) advance() lexer.Token {
 	return t
 }
 
+// peek is same as `advance` but doesn't move the `it`
+func (c BaseCompiler) peek() lexer.Token {
+	if c.isAtEnd() {
+		var t lexer.Token
+		return t
+	}
+	return c.tokens[c.it]
+}
+
 func (c *BaseCompiler) consumeTokenWithType(atEndErrMsg string, expected ...lexer.TokenType) (lexer.Token, error) {
 	var zero lexer.Token
 	if c.isAtEnd() {
