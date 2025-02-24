@@ -1,0 +1,49 @@
+# This pushdown automaton accepts its input if and only if number of 0s in it is the
+# same as nubmer of 1s.
+# We assume that input alphabet is binary.
+
+# States
+qStart
+qLast0 # last element added to the stack was 0
+qLast1 # last element added to the stack was 1
+qAcc
+qR;
+
+# Initial State
+qStart;
+
+# Accepting States
+qAcc;
+
+# Symbols
+0 1 X;
+
+# Transitions
+
+# qStart
+(qStart, 0, }) > (qLast0, }, X)
+(qStart, 1, }) > (qLast1, }, X)
+(qStart, {, }) > (qAcc)
+
+# qLast0
+(qLast0, 0, }) > (qLast0, }, X)
+(qLast0, 0, X) > (qLast0, X, X)
+(qLast0, 1, }) > (qLast1, }, X)
+(qLast0, 1, X) > (qLast0)
+(qLast0, {, }) > (qAcc)
+(qLast0, {, X) > (qR)
+
+
+# qLast1
+(qLast1, 1, }) > (qLast1, }, X)
+(qLast1, 1, X) > (qLast1, X, X)
+(qLast1, 0, }) > (qLast0, }, X)
+(qLast1, 0, X) > (qLast1)
+(qLast1, {, }) > (qAcc)
+(qLast1, {, X) > (qR)
+
+;
+
+# Input
+
+0 0 0 1 1 1 0 1 0 1 0 0 1 1 ;

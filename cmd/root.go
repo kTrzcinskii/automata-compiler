@@ -19,9 +19,10 @@ var rootCmd = &cobra.Command{
 	Use:   "automata-compiler AUTOMATON_TYPE PAHT_TO_INPUT_FILE",
 	Short: "automata-compiler is a tool for simulating automata",
 	Long: `The automata-compiler is a CLI application for compiling and running automata code.
-It supports Deterministic Finite Automata and Turing Machines. 
+It supports Deterministic Finite Automata, Pushdown Automaton and Turing Machines. 
 AUTOMATON_TYPE is one of the following
 - DFA (for Deterministic Finite Automaton)
+- PA (for Pushdown Automaton)
 - TM (for Turing Machine)`,
 	RunE: runRootCmd,
 	Args: cobra.MatchAll(cobra.ExactArgs(2), cobra.OnlyValidArgs),
@@ -125,6 +126,8 @@ func getCompiler(tokens []lexer.Token, aType string) (compiler.Compiler, error) 
 		return compiler.NewDeterministicFiniteAutomatonCompiler(tokens), nil
 	case "tm":
 		return compiler.NewTuringMachineCompiler(tokens), nil
+	case "pa":
+		return compiler.NewPushdownAutomatonCompiler(tokens), nil
 	default:
 		return nil, fmt.Errorf("unsupported automaton type: '%s'", aType)
 	}
