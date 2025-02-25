@@ -1,6 +1,30 @@
 # Automata Compiler
 
-_Work in progress_
+Automata Compiler is a CLI program written in Go that allows you to simulate computations for different types of automata, including Deterministic Finite Automata (DFA), Pushdown Automata (PA), and Turing Machines (TM).
+
+## Requirements
+
+This application requires:
+
+- Go `>= 1.24`
+- Make `>= 4.0`
+
+To run this, fist compile it:
+```bash
+make
+```
+
+Then, navigate to the build folder and run:
+
+```bash
+./automata-compiler AUTOMATON_TYPE INPUT_FILE [flags]
+```
+where:
+- `AUTOMATON_TYPE` specifies the type of automaton:
+   - DFA (deterministic finite automaton), 
+   - PA (pushdown automaton), 
+   - TM (turing machine)
+- `INPUT_FILE` is the path to the file containing the automaton's source code. You can find example input files in the `examples` folder
 
 ## Supported Automata
 
@@ -70,9 +94,15 @@ a1 a1 a3 a8 ...; [input]
 
 #### Examples
 
-You can find example DFA programs in the [examples/deterministinc-finite-automaton](examples/deterministinc-finite-automaton) directory.
+You can find example DFA programs in the [examples/deterministic-finite-automaton](examples/deterministic-finite-automaton) directory.
 
-### Pushdown Atumaton
+# Pushdown Automaton (PA)
+
+A **Pushdown Automaton (PA)** determines its next move based on its current state, the input symbol, and the symbol at the top of the stack. At each step, the automaton transitions to a new state and may push an arbitrary number of symbols onto the stack.
+
+At the start of the computation, the stack contains a single symbol (`}`), which serves as the stack start symbol. The user-provided input is concatenated with `{`, which acts as the input end symbol.
+
+It is important to note that if the automaton attempts a transition when the stack is empty, an error is returned. The only valid moment for the stack to be empty is at the end of the computation.
 
 #### Input Format
 
@@ -90,10 +120,19 @@ a1 a2 ... an; [symbols]
 a1 a1 a3 a8 ...; [input]
 ```
 
-#### Rules and Conventions
-- `{` is a **reserved symbol** representing input end (user cannot use it in symbol declaration section, but should use it in transitions)
-- `}` is a **reserved symbol** representing stack start (user cannot use it in symbol declaration section, but should use it in transitions)
+## Rules and Conventions
+
+- `{` is a **reserved symbol** representing the end of input. It **cannot** be used in the symbol declaration section but **must** be used in transitions.
+- `}` is a **reserved symbol** representing the start of the stack. It **cannot** be used in the symbol declaration section but **must** be used in transitions.
 - Each state must start with the letter `q`, followed by one or more alphanumeric characters.
-- Each symbol must constist of one or more alphanumeric characters.
+- Each symbol must consist of one or more alphanumeric characters.
 - Each section must be **terminated by a semicolon** (`;`).
-- In transitions section, `s_i` is symbol from input and `s_s` is symbol from stack. `s_s1`, `s_s2`, ...  are symbols that should be push on the stack (they will be pushed in the order they are provided, meaning that in this case `s_s2` will be closer to stack top than `s_s2`).
+- In the transitions section:
+  - `s_i` represents the input symbol.
+  - `s_s` represents the symbol from the top of the stack.
+  - `s_s1`, `s_s2`, ... are symbols to be pushed onto the stack.
+  - Symbols are pushed in the order they are provided, meaning `s_s2` will be closer to the top of the stack than `s_s1`.
+
+#### Examples
+
+You can find example DFA programs in the [examples/pushdown-automaton](examples/pushdown-automaton) directory.
