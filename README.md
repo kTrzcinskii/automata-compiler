@@ -96,7 +96,7 @@ a1 a1 a3 a8 ...; [input]
 
 You can find example DFA programs in the [examples/deterministic-finite-automaton](examples/deterministic-finite-automaton) directory.
 
-# Pushdown Automaton (PA)
+### Pushdown Automaton (PA)
 
 A **Pushdown Automaton (PA)** determines its next move based on its current state, the input symbol, and the symbol at the top of the stack. At each step, the automaton transitions to a new state and may push an arbitrary number of symbols onto the stack.
 
