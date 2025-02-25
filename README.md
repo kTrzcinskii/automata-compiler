@@ -120,7 +120,7 @@ a1 a2 ... an; [symbols]
 a1 a1 a3 a8 ...; [input]
 ```
 
-## Rules and Conventions
+#### Rules and Conventions
 
 - `{` is a **reserved symbol** representing the end of input. It **cannot** be used in the symbol declaration section but **must** be used in transitions.
 - `}` is a **reserved symbol** representing the start of the stack. It **cannot** be used in the symbol declaration section but **must** be used in transitions.
